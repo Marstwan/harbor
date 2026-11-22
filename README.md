@@ -1,8 +1,7 @@
 ![Harbor 1.6 banner](https://i.imgur.com/VsYoStK.png)
 
-[discord-invite]: https://discord.gg/UACRzwe
 # ⚓ Harbor 
-[![CodeFactor](https://www.codefactor.io/repository/github/nkomarn/harbor/badge)](https://www.codefactor.io/repository/github/nkomarn/harbor) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/nkomarn/Harbor/blob/master/LICENSE) [![Discord](https://discordapp.com/api/guilds/285623631042707457/widget.png)][discord-invite]
+[![CodeFactor](https://www.codefactor.io/repository/github/nkomarn/harbor/badge)](https://www.codefactor.io/repository/github/nkomarn/harbor) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/nkomarn/Harbor/blob/master/LICENSE)
 
 Harbor is a plugin that redefines sleep within your Spigot server! Harbor is lightweight and performant, with just the right amount of features for any survival server! 
 
