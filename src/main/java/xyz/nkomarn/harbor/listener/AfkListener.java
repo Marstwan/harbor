@@ -1,6 +1,7 @@
 package xyz.nkomarn.harbor.listener;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,8 +19,6 @@ import xyz.nkomarn.harbor.provider.DefaultAFKProvider;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public final class AfkListener implements Listener {
     private final DefaultAFKProvider afkProvider;
@@ -39,13 +38,15 @@ public final class AfkListener implements Listener {
      * Provides a way to start the listener
      */
     public void start() {
-        if(!status) {
+        if (!status) {
             status = true;
             players = new ArrayDeque<>();
             movementChecker = new PlayerMovementChecker();
 
             // Populate the queue with any existing players
-            players.addAll(Bukkit.getOnlinePlayers().stream().map((Function<Player, AfkPlayer>) AfkPlayer::new).collect(Collectors.toSet()));
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                players.add(new AfkPlayer(player));
+            }
 
             // Register listeners after populating the queue
             Bukkit.getServer().getPluginManager().registerEvents(this, harbor);
@@ -64,7 +65,7 @@ public final class AfkListener implements Listener {
      * Provides a way to halt the listener
      */
     public void stop() {
-        if(status) {
+        if (status) {
             status = false;
             movementChecker.cancel();
             HandlerList.unregisterAll(this);
@@ -87,7 +88,9 @@ public final class AfkListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onInventoryClick(InventoryClickEvent event) {
-        afkProvider.updateActivity((Player) event.getWhoClicked());
+        if (event.getWhoClicked() instanceof Player player) {
+            afkProvider.updateActivity(player);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -107,9 +110,10 @@ public final class AfkListener implements Listener {
      */
     private final class PlayerMovementChecker extends BukkitRunnable {
         private double checksToMake = 0;
+
         @Override
         public void run() {
-            if(players.isEmpty()){
+            if (players.isEmpty()) {
                 checksToMake = 0;
                 return;
             }
@@ -125,15 +129,19 @@ public final class AfkListener implements Listener {
         }
     }
 
-
-
     private static final class AfkPlayer {
         private final Player player;
+        private final Location cachedLocation = new Location(null, 0, 0, 0);
         private int locationHash;
 
         public AfkPlayer(Player player) {
             this.player = player;
-            locationHash = player.getEyeLocation().hashCode();
+            this.locationHash = computeHash();
+        }
+
+        private int computeHash() {
+            player.getLocation(cachedLocation);
+            return cachedLocation.hashCode();
         }
 
         /**
@@ -143,7 +151,7 @@ public final class AfkListener implements Listener {
          */
         boolean changed() {
             int previousLocation = locationHash;
-            locationHash = player.getEyeLocation().hashCode();
+            locationHash = computeHash();
             return previousLocation != locationHash;
         }
 

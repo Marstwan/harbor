@@ -9,9 +9,9 @@ import xyz.nkomarn.harbor.listener.AfkListener;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -26,7 +26,8 @@ public final class DefaultAFKProvider implements AFKProvider, Listener {
 
     public DefaultAFKProvider(@NotNull Harbor harbor) {
         this.harbor = harbor;
-        if (enabled = (harbor.getConfig().getBoolean("afk-detection.fallback-enabled", true))) {
+        this.enabled = harbor.getConfig().getBoolean("afk-detection.fallback-enabled", true);
+        if (this.enabled) {
             timeout = harbor.getConfig().getInt("afk-detection.fallback-timeout", 15);
             listener = new AfkListener(this);
             enableListeners();
@@ -39,11 +40,16 @@ public final class DefaultAFKProvider implements AFKProvider, Listener {
 
     @Override
     public boolean isAFK(Player player) {
-        if (!enabled || !playerActivity.containsKey(player.getUniqueId())) {
+        if (!enabled || playerActivity == null) {
             return false;
         }
 
-        long minutes = playerActivity.get(player.getUniqueId()).until(Instant.now(), ChronoUnit.MINUTES);
+        Instant lastActive = playerActivity.get(player.getUniqueId());
+        if (lastActive == null) {
+            return false;
+        }
+
+        long minutes = lastActive.until(Instant.now(), ChronoUnit.MINUTES);
         return minutes >= timeout;
     }
 
@@ -53,7 +59,9 @@ public final class DefaultAFKProvider implements AFKProvider, Listener {
      * @param player The player to update.
      */
     public void updateActivity(@NotNull Player player) {
-        playerActivity.put(player.getUniqueId(), Instant.now());
+        if (playerActivity != null) {
+            playerActivity.put(player.getUniqueId(), Instant.now());
+        }
     }
 
 
@@ -63,7 +71,7 @@ public final class DefaultAFKProvider implements AFKProvider, Listener {
     public void enableListeners() {
         if (enabled) {
             harbor.getLogger().log(Level.FINE, "Enabling listeners for Default AFK Provider");
-            playerActivity = new HashMap<>();
+            playerActivity = new ConcurrentHashMap<>();
             listener.start();
         }
     }
@@ -81,7 +89,9 @@ public final class DefaultAFKProvider implements AFKProvider, Listener {
 
 
     public void removePlayer(UUID uniqueId) {
-        playerActivity.remove(uniqueId);
+        if (playerActivity != null) {
+            playerActivity.remove(uniqueId);
+        }
     }
 
     @NotNull

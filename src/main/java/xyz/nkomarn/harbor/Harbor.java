@@ -14,10 +14,10 @@ import xyz.nkomarn.harbor.listener.BedListener;
 import xyz.nkomarn.harbor.task.Checker;
 import xyz.nkomarn.harbor.util.Config;
 import xyz.nkomarn.harbor.util.Messages;
-import xyz.nkomarn.harbor.util.Metrics;
 import xyz.nkomarn.harbor.util.PlayerManager;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Harbor extends JavaPlugin {
@@ -27,6 +27,7 @@ public class Harbor extends JavaPlugin {
     private PlayerManager playerManager;
     private Essentials essentials;
 
+    @Override
     public void onEnable() {
         PluginManager pluginManager = getServer().getPluginManager();
 
@@ -36,28 +37,25 @@ public class Harbor extends JavaPlugin {
         playerManager = new PlayerManager(this);
         essentials = (Essentials) pluginManager.getPlugin("Essentials");
 
-        Arrays.asList(
+        List.of(
                 messages,
                 playerManager,
                 new BedListener(this)
         ).forEach(listener -> pluginManager.registerEvents(listener, this));
 
-        getCommand("harbor").setExecutor(new HarborCommand(this));
-        getCommand("forceskip").setExecutor(new ForceSkipCommand(this));
-
-
-
-        if (config.getBoolean("metrics")) {
-            new Metrics(this);
-        }
+        Objects.requireNonNull(getCommand("harbor")).setExecutor(new HarborCommand(this));
+        Objects.requireNonNull(getCommand("forceskip")).setExecutor(new ForceSkipCommand(this));
     }
-
-
 
     @Override
     public void onDisable() {
-        for (World world : getServer().getWorlds()) {
-            messages.clearBar(world);
+        if (checker != null) {
+            checker.cancel();
+        }
+        if (messages != null) {
+            for (World world : getServer().getWorlds()) {
+                messages.clearBar(world);
+            }
         }
     }
 

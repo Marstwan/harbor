@@ -1,18 +1,38 @@
 package xyz.nkomarn.harbor.util;
 
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import xyz.nkomarn.harbor.Harbor;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Config {
+    private static final Pattern HEX_PATTERN = Pattern.compile("&?#([A-Fa-f0-9]{6})");
     private final Harbor harbor;
 
     public Config(@NotNull Harbor harbor) {
         this.harbor = harbor;
         harbor.saveDefaultConfig();
+    }
+
+    /**
+     * Translates legacy '&' color codes and hex color codes ('&#RRGGBB' or '#RRGGBB').
+     *
+     * @param text The text to colorize.
+     * @return The colorized string.
+     */
+    @NotNull
+    public static String colorize(@NotNull String text) {
+        Matcher matcher = HEX_PATTERN.matcher(text);
+        StringBuilder buffer = new StringBuilder(text.length() + 32);
+        while (matcher.find()) {
+            matcher.appendReplacement(buffer, ChatColor.of("#" + matcher.group(1)).toString());
+        }
+        matcher.appendTail(buffer);
+        return ChatColor.translateAlternateColorCodes('&', buffer.toString());
     }
 
     /**
@@ -38,7 +58,7 @@ public class Config {
      */
     @NotNull
     public String getPrefix() {
-        return ChatColor.translateAlternateColorCodes('&', getString("messages.miscellaneous.chat-prefix"));
+        return colorize(getString("messages.miscellaneous.chat-prefix"));
     }
 
     /**

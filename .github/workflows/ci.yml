@@ -32,5 +32,5 @@ jobs:
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || '1.6.4' }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || '1.7.0' }}
         run: gh release upload "$RELEASE_TAG" target/Harbor-*.jar --clobber

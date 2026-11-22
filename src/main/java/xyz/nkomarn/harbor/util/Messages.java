@@ -6,7 +6,6 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -20,20 +19,23 @@ import org.jetbrains.annotations.NotNull;
 import xyz.nkomarn.harbor.Harbor;
 import xyz.nkomarn.harbor.task.Checker;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Messages implements Listener {
 
     private final Harbor harbor;
     private final Config config;
-    private final Random random;
-    private final HashMap<UUID, BossBar> bossBars;
+    private final Map<UUID, BossBar> bossBars;
     private final boolean papiPresent;
 
     public Messages(@NotNull Harbor harbor) {
         this.harbor = harbor;
         this.config = harbor.getConfiguration();
-        this.random = new Random();
         this.bossBars = new HashMap<>();
         this.papiPresent = harbor.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
@@ -53,7 +55,7 @@ public class Messages implements Listener {
      * @param message The message to send.
      */
     public void sendWorldChatMessage(@NotNull World world, @NotNull String message) {
-        if (!config.getBoolean("messages.chat.enabled") || message.length() < 1) {
+        if (!config.getBoolean("messages.chat.enabled") || message.isEmpty()) {
             return;
         }
 
@@ -70,7 +72,7 @@ public class Messages implements Listener {
      * @param message The message to send.
      */
     public void sendActionBarMessage(@NotNull World world, @NotNull String message) {
-        if (!config.getBoolean("messages.actionbar.enabled") || message.length() < 1) {
+        if (!config.getBoolean("messages.actionbar.enabled") || message.isEmpty()) {
             return;
         }
 
@@ -89,11 +91,12 @@ public class Messages implements Listener {
     public void sendRandomChatMessage(@NotNull World world, @NotNull String listLocation) {
         List<String> messages = config.getStringList(listLocation);
 
-        if (messages.size() < 1) {
+        if (messages.isEmpty()) {
             return;
         }
 
-        sendWorldChatMessage(world, messages.get(random.nextInt(messages.size())));
+        int index = ThreadLocalRandom.current().nextInt(messages.size());
+        sendWorldChatMessage(world, messages.get(index));
     }
 
     /**
@@ -105,7 +108,7 @@ public class Messages implements Listener {
      * @param percentage The bossbar percentage to set.
      */
     public void sendBossBarMessage(@NotNull World world, @NotNull String message, @NotNull String color, double percentage) {
-        if (!config.getBoolean("messages.bossbar.enabled") || message.length() < 1) {
+        if (!config.getBoolean("messages.bossbar.enabled") || message.isEmpty()) {
             return;
         }
 
@@ -120,9 +123,9 @@ public class Messages implements Listener {
             return;
         }
 
-        bar.setTitle(harbor.getMessages().prepareMessage(world, message));
+        bar.setTitle(prepareMessage(world, message));
         bar.setColor(Enums.getIfPresent(BarColor.class, color).or(BarColor.BLUE));
-        bar.setProgress(percentage);
+        bar.setProgress(Math.max(0.0, Math.min(1.0, percentage)));
         world.getPlayers().forEach(bar::addPlayer);
     }
 
@@ -136,24 +139,28 @@ public class Messages implements Listener {
     @NotNull
     public String prepareMessage(@NotNull World world, @NotNull String message) {
         Checker checker = harbor.getChecker();
-        return ChatColor.translateAlternateColorCodes('&', message
-                .replace("[sleeping]", String.valueOf(checker.getSleepingPlayers(world).size()))
-                .replace("[players]", String.valueOf(checker.getPlayers(world)))
-                .replace("[needed]", String.valueOf(checker.getSkipAmount(world)))
-                .replace("[more]", String.valueOf(checker.getNeeded(world))));
+        int sleeping = checker.getSleepingPlayers(world).size();
+        int players = checker.getPlayers(world);
+        int needed = checker.getSkipAmount(players);
+        int more = Math.max(0, needed - sleeping);
+        return Config.colorize(message
+                .replace("[sleeping]", String.valueOf(sleeping))
+                .replace("[players]", String.valueOf(players))
+                .replace("[needed]", String.valueOf(needed))
+                .replace("[more]", String.valueOf(more)));
     }
 
     @NotNull
     public String prepareMessage(@NotNull Player player, @NotNull String message) {
-        String output = ChatColor.translateAlternateColorCodes('&', message
+        String output = message
                 .replace("[player]", player.getName())
-                .replace("[displayname]", player.getDisplayName()));
+                .replace("[displayname]", player.getDisplayName());
 
         if (papiPresent) {
             output = PlaceholderAPI.setPlaceholders(player, output);
         }
 
-        return output;
+        return Config.colorize(output);
     }
 
     /**
