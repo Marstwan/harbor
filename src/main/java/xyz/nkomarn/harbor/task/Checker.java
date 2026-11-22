@@ -66,9 +66,17 @@ public class Checker extends BukkitRunnable {
      * @return Whether Harbor should run the night skipping check below.
      */
     private boolean validateWorld(@NotNull World world) {
-        return !skippingWorlds.contains(world.getUID())
-                && !isBlacklisted(world)
-                && isNight(world);
+        if (skippingWorlds.contains(world.getUID()) || isBlacklisted(world)) {
+            return false;
+        }
+        if (!isNight(world)) {
+            Messages messages = harbor.getMessages();
+            if (messages != null) {
+                messages.clearBar(world);
+            }
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -292,6 +300,7 @@ public class Checker extends BukkitRunnable {
         harbor.getServer().getScheduler().runTaskLater(harbor, () -> {
             skippingWorlds.remove(world.getUID());
             harbor.getPlayerManager().clearCooldowns();
+            harbor.getMessages().clearBar(world);
             harbor.getMessages().sendRandomChatMessage(world, "messages.chat.night-skipped");
         }, 20L);
     }
