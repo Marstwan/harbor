@@ -23,7 +23,7 @@ public class HarborCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length < 1 || !sender.hasPermission("harbor.admin")) {
-            sender.sendMessage(config.getPrefix() + "Harbor " + harbor.getVersion() + " by TechToolbox (@nkomarn).");
+            sender.sendMessage(config.getPrefix() + "Harbor " + harbor.getVersion() + " by Marstwan.");
             return true;
         }
 

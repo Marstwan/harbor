@@ -1,8 +1,8 @@
 name: "Harbor"
 description: "Harbor redefines how sleep works in your server, making it easier for all the online players to get in bed quickly and skip through the night!"
 main: "xyz.nkomarn.harbor.Harbor"
-author: "TechToolbox (@nkomarn)"
-website: "https://nkomarn.xyz"
+author: "Marstwan"
+website: "https://github.com/Marstwan/harbor"
 version: "1.6.4"
 api-version: "26.3"
 
