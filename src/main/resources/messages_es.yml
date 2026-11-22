@@ -1,0 +1,29 @@
+# Harbor - Archivo de idioma en Castellano (es)
+
+messages:
+  chat:
+    player-sleeping: "&e[player] está durmiendo ([sleeping]/[needed], faltan [more] para saltar la noche)."
+    player-left-bed: "&e[player] se ha levantado de la cama ([sleeping]/[needed], faltan [more] para saltar la noche)."
+    night-skipping:
+      - "&eAcelerando la noche."
+      - "&eAcercándose rápidamente al amanecer."
+    night-skipped:
+      - "&eSe ha saltado la noche."
+      - "&eAhhh, por fin es de día."
+      - "&e¡Qué brillante está el sol afuera!"
+      - "&eArriba, ya ha amanecido."
+  actionbar:
+    players-sleeping: "&e[sleeping] de [needed] jugadores están durmiendo (faltan [more] para saltar)"
+    night-skipping: "&e¡Todos están durmiendo, dulces sueños!"
+  bossbar:
+    players-sleeping:
+      message: "&f&l[sleeping] de [needed] están durmiendo &7&l(faltan [more])"
+    night-skipping:
+      message: "&f&lTodos están durmiendo. ¡Dulces sueños!"
+  miscellaneous:
+    chat-prefix: "&8&l(&6&lHarbor&8&l)&f "
+    unrecognized-command: "Comando desconocido."
+    reloaded: "Configuración recargada."
+    only-players: "Este comando solo puede ser usado por un jugador."
+    already-skipping: "El tiempo de este mundo ya se está acelerando."
+    forcing-skip: "Forzando el salto de la noche en tu mundo."

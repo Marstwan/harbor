@@ -40,6 +40,10 @@ blacklisted-worlds:
   - "world_the_end"
 whitelist-mode: false # Will treat the above list as a whitelist instead of a blacklist
 
+# Language for Harbor messages
+# Available languages: "en" (English), "es" (Castellano), "ca" (Català), or "custom" (uses the messages section below)
+language: en
+
 messages:
   chat:
     enabled: true
@@ -69,6 +73,10 @@ messages:
   miscellaneous:
     chat-prefix: "&8&l(&6&lHarbor&8&l)&f "
     unrecognized-command: "Unrecognized command."
+    reloaded: "Reloaded configuration."
+    only-players: "This command can only be used by a player."
+    already-skipping: "This world's time is already being accelerated."
+    forcing-skip: "Forcing night skip in your world."
 
 # Spooky internal controls
 version: 1.7.0

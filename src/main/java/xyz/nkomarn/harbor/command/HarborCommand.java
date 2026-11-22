@@ -29,11 +29,11 @@ public class HarborCommand implements TabExecutor {
 
         if (args[0].equalsIgnoreCase("reload")) {
             config.reload();
-            sender.sendMessage(config.getPrefix() + "Reloaded configuration.");
+            sender.sendMessage(config.getPrefix() + Config.colorize(config.getString("messages.miscellaneous.reloaded")));
             return true;
         }
 
-        sender.sendMessage(config.getPrefix() + config.getString("messages.miscellaneous.unrecognized-command"));
+        sender.sendMessage(config.getPrefix() + Config.colorize(config.getString("messages.miscellaneous.unrecognized-command")));
         return true;
     }
 

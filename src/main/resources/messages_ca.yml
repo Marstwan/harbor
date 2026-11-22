@@ -1,0 +1,29 @@
+# Harbor - Fitxer d'idioma en Català (ca)
+
+messages:
+  chat:
+    player-sleeping: "&e[player] està dormint ([sleeping]/[needed], en falten [more] per passar la nit)."
+    player-left-bed: "&e[player] s'ha aixecat del llit ([sleeping]/[needed], en falten [more] per passar la nit)."
+    night-skipping:
+      - "&eAccelerant la nit."
+      - "&eAcostant-se ràpidament a la matinada."
+    night-skipped:
+      - "&eS'ha passat la nit."
+      - "&eAhhh, per fi és de dia."
+      - "&eQue brillant és el sol a fora!"
+      - "&eAmunt, ja s'ha fet de dia."
+  actionbar:
+    players-sleeping: "&e[sleeping] de [needed] jugadors estan dormint (en falten [more] per passar)"
+    night-skipping: "&eTothom està dormint, dolços somnis!"
+  bossbar:
+    players-sleeping:
+      message: "&f&l[sleeping] de [needed] estan dormint &7&l(en falten [more])"
+    night-skipping:
+      message: "&f&lTothom està dormint. Dolços somnis!"
+  miscellaneous:
+    chat-prefix: "&8&l(&6&lHarbor&8&l)&f "
+    unrecognized-command: "Comanda desconeguda."
+    reloaded: "Configuració recarregada."
+    only-players: "Aquesta comanda només pot ser utilitzada per un jugador."
+    already-skipping: "El temps d'aquest món ja s'està accelerant."
+    forcing-skip: "Forçant el salt de la nit al teu món."
