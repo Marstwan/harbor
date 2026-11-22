@@ -1,21 +1,53 @@
-# ⚓ Harbor 
-[![CodeFactor](https://www.codefactor.io/repository/github/marstwan/harbor/badge)](https://www.codefactor.io/repository/github/marstwan/harbor) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/marstwan/Harbor/blob/master/LICENSE)
+# ⚓ Harbor
 
-Harbor is a plugin that redefines sleep within your Spigot server! Harbor is lightweight and performant, with just the right amount of features for any survival server! 
+[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Marstwan/harbor/blob/master/LICENSE)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Marstwan/harbor/releases)
+[![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://github.com/Marstwan/harbor)
 
-Check it out and download the latest builds [over on the releases page!](https://github.com/marstwan/Harbor/releases)
+**Harbor** is a lightweight, modernized sleep mechanics enhancement plugin for Spigot and Paper servers, updated and maintained by **Marstwan** for **Minecraft 26.3**. It makes skipping the night smooth and customizable when a configurable percentage of online players are in bed.
 
-# 🔨 Building from source
-Harbor uses Maven to handle dependecies and building! Make sure you have Java 17+, Git, and Maven installed, and then run:
+Download the latest version on the **[Releases page](https://github.com/Marstwan/harbor/releases)**.
+
+---
+
+## ✨ Features
+
+- **Percentage-Based Night Skip:** Skip the night smoothly (with a time-acceleration animation or instantly) when a percentage of players in a world are sleeping.
+- **Multi-Language Interface (`en`, `es`, `ca`):** Built-in translations for **English**, **Spanish (Castellano)**, and **Catalan (Català)** selectable directly in `config.yml` (`language: en | es | ca | custom`).
+- **Chat, ActionBar & BossBar Notifications:** Customizable progress bars and messages supporting both legacy color codes (`&a`) and modern **RGB Hex colors** (`&#RRGGBB` / `#RRGGBB`).
+- **Smart Player Exclusions:** Automatically ignores AFK players (with built-in fallback detection or **EssentialsX** integration), vanished players, NPCs, specific game modes, or players with `harbor.ignored`.
+- **Weather & Phantom Control:** Automatically clears rain/thunder and resets phantom insomnia statistics upon skipping the night.
+- **PlaceholderAPI Support:** Full support for PlaceholderAPI placeholders in bed enter/leave chat messages.
+
+---
+
+## ⚡ Commands & Permissions
+
+| Command | Description | Permission | Default |
+| :--- | :--- | :--- | :--- |
+| `/harbor` | Displays plugin version information. | — | Everyone |
+| `/harbor reload` | Reloads `config.yml` and language files. | `harbor.admin` | OP |
+| `/forceskip` | Forces a night skip in your current world. | `harbor.forceskip` | OP |
+| — | Excludes a player from the required sleeping count. | `harbor.ignored` | `false` |
+
+---
+
+## 🔨 Building from Source
+
+Make sure you have **Java 17+**, **Git**, and **Maven** installed:
+
+```bash
+git clone https://github.com/Marstwan/harbor.git
+cd harbor
+mvn clean package
 ```
-git clone https://github.com/marstwan/Harbor.git
-cd Harbor/
-mvn package
-```
-You can find the compiled JARs in the `target` directory.
 
-# 🎺 Contributing
-Feel free to create pull requests with any changes or improvements that think would make Harbor a better plugin! Generally, try to keep core plugin features intact. Pull requests with bugfixes are welcome!
+The compiled JAR will be generated in the `target/` directory.
 
-# 📋 License
-Harbor is licensed under the MIT license. View `LICENSE` for more information.
+---
+
+## 📋 Credits & License
+
+This project is a modernized fork of the original [Harbor](https://github.com/nkomarn/harbor) plugin created by [nkomarn](https://github.com/nkomarn).
+
+Licensed under the **MIT License**. See [LICENSE](LICENSE) for more details.
