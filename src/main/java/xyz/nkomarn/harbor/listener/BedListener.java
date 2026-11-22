@@ -72,11 +72,11 @@ public class BedListener implements Listener {
             return true;
         }
 
-        if (Checker.isVanished(player)) {
+        if (Checker.isVanished(player) || player.hasMetadata("NPC")) {
             return true;
         }
 
         int cooldown = harbor.getConfiguration().getInteger("messages.chat.message-cooldown");
-        return playerManager.getCooldown(player).until(Instant.now(), ChronoUnit.MINUTES) < cooldown;
+        return playerManager.getCooldown(player).until(Instant.now(), ChronoUnit.SECONDS) < cooldown;
     }
 }

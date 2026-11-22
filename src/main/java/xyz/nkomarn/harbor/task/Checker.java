@@ -1,10 +1,12 @@
 package xyz.nkomarn.harbor.task;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Pose;
+import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +37,7 @@ public class Checker extends BukkitRunnable {
         providers.add(new GameModeExclusionProvider(harbor));
 
         // The others are simple enough that we can use lambdas
+        providers.add(player -> player.hasMetadata("NPC"));
         providers.add(player -> harbor.getConfig().getBoolean("exclusions.ignored-permission", true) && player.hasPermission("harbor.ignored"));
         providers.add(player -> harbor.getConfig().getBoolean("exclusions.exclude-vanished", false) && isVanished(player));
         providers.add(player -> harbor.getConfig().getBoolean("exclusions.exclude-afk", false) && harbor.getPlayerManager().isAfk(player));
@@ -100,9 +103,18 @@ public class Checker extends BukkitRunnable {
 
             if (config.getBoolean("night-skip.instant-skip")) {
                 Bukkit.getScheduler().runTask(harbor, () -> {
-                    world.setTime(config.getInteger("night-skip.daytime-ticks"));
-                    clearWeather(world);
-                    resetStatus(world);
+                    int dayTime = config.getInteger("night-skip.daytime-ticks");
+                    long skipAmount = (dayTime - world.getTime() + 24000) % 24000;
+                    TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP, skipAmount);
+                    Bukkit.getPluginManager().callEvent(event);
+                    if (!event.isCancelled()) {
+                        world.setTime(world.getTime() + event.getSkipAmount());
+                        if (config.getBoolean("night-skip.reset-phantom-statistic")) {
+                            world.getPlayers().forEach(player -> player.setStatistic(Statistic.TIME_SINCE_REST, 0));
+                        }
+                        clearWeather(world);
+                        resetStatus(world);
+                    }
                 });
                 return;
             }
@@ -120,7 +132,7 @@ public class Checker extends BukkitRunnable {
      * @return Whether it is currently night in the provided world.
      */
     private boolean isNight(@NotNull World world) {
-        return world.getTime() > 12950 || world.getTime() < 23950;
+        return world.getTime() > 12950 && world.getTime() < 23950;
     }
 
     /**
@@ -172,7 +184,7 @@ public class Checker extends BukkitRunnable {
     @NotNull
     public List<Player> getSleepingPlayers(@NotNull World world) {
         return world.getPlayers().stream()
-                .filter(player -> player.getPose() == Pose.SLEEPING)
+                .filter(player -> !player.hasMetadata("NPC") && player.getPose() == Pose.SLEEPING)
                 .collect(toList());
     }
 

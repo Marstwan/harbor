@@ -1,7 +1,9 @@
 package xyz.nkomarn.harbor.task;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Statistic;
 import org.bukkit.World;
+import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import xyz.nkomarn.harbor.Harbor;
@@ -46,6 +48,10 @@ public class AccelerateNightTask extends BukkitRunnable {
             return;
         }
 
-        world.setTime(time + (int) timeRate);
+        TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP, (int) timeRate);
+        Bukkit.getPluginManager().callEvent(event);
+        if (!event.isCancelled()) {
+            world.setTime(time + event.getSkipAmount());
+        }
     }
 }

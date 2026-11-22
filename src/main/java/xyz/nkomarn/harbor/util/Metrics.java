@@ -14,8 +14,9 @@ import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -98,12 +99,12 @@ public class Metrics {
             config.addDefault("logResponseStatusText", false);
 
             // Inform the server owners about bStats
-            config.options().header(
-                    "bStats collects some data for plugin authors like how many servers are using their plugins.\n" +
-                            "To honor their work, you should not disable it.\n" +
-                            "This has nearly no effect on the server performance!\n" +
-                            "Check out https://bStats.org/ to learn more :)"
-            ).copyDefaults(true);
+            config.options().setHeader(Arrays.asList(
+                    "bStats collects some data for plugin authors like how many servers are using their plugins.",
+                    "To honor their work, you should not disable it.",
+                    "This has nearly no effect on the server performance!",
+                    "Check out https://bStats.org/ to learn more :)"
+            )).copyDefaults(true);
             try {
                 config.save(configFile);
             } catch (IOException ignored) { }
@@ -255,7 +256,7 @@ public class Metrics {
                                     Method jsonStringGetter = jsonObjectJsonSimple.getDeclaredMethod("toJSONString");
                                     jsonStringGetter.setAccessible(true);
                                     String jsonString = (String) jsonStringGetter.invoke(plugin);
-                                    JsonObject object = new JsonParser().parse(jsonString).getAsJsonObject();
+                                    JsonObject object = JsonParser.parseString(jsonString).getAsJsonObject();
                                     pluginData.add(object);
                                 }
                             } catch (ClassNotFoundException e) {
@@ -307,7 +308,7 @@ public class Metrics {
         if (logSentData) {
             plugin.getLogger().info("Sending data to bStats: " + data.toString());
         }
-        HttpsURLConnection connection = (HttpsURLConnection) new URL(URL).openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) URI.create(URL).toURL().openConnection();
 
         // Compress the data to save bandwidth
         byte[] compressedData = compress(data.toString());

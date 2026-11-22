@@ -39,7 +39,7 @@ public class Messages implements Listener {
 
         for (World world : Bukkit.getWorlds()) {
             if (harbor.getChecker().isBlacklisted(world)) {
-                return;
+                continue;
             }
 
             registerBar(world);
@@ -74,7 +74,7 @@ public class Messages implements Listener {
             return;
         }
 
-        BaseComponent[] preparedMessage = TextComponent.fromLegacyText(prepareMessage(world, message));
+        BaseComponent preparedMessage = TextComponent.fromLegacy(prepareMessage(world, message));
         for (Player player : world.getPlayers()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, preparedMessage);
         }
