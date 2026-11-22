@@ -1,5 +1,3 @@
-![Harbor 1.6 banner](https://i.imgur.com/VsYoStK.png)
-
 # ⚓ Harbor 
 [![CodeFactor](https://www.codefactor.io/repository/github/marstwan/harbor/badge)](https://www.codefactor.io/repository/github/marstwan/harbor) [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/marstwan/Harbor/blob/master/LICENSE)
 
