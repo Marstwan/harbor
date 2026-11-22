@@ -32,10 +32,10 @@ public class Harbor extends JavaPlugin {
         PluginManager pluginManager = getServer().getPluginManager();
 
         config = new Config(this);
+        essentials = (Essentials) pluginManager.getPlugin("Essentials");
+        playerManager = new PlayerManager(this);
         checker = new Checker(this);
         messages = new Messages(this);
-        playerManager = new PlayerManager(this);
-        essentials = (Essentials) pluginManager.getPlugin("Essentials");
 
         List.of(
                 messages,

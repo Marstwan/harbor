@@ -35,10 +35,14 @@ public class AccelerateNightTask extends BukkitRunnable {
         int sleeping = checker.getSleepingPlayers(world).size();
 
         if (config.getBoolean("night-skip.proportional-acceleration")) {
-            timeRate = Math.min(timeRate, Math.round(timeRate / world.getPlayers().size() * Math.max(1, sleeping)));
+            int playerCount = world.getPlayers().size();
+            if (playerCount > 0) {
+                timeRate = Math.min(timeRate, Math.round(timeRate / playerCount * Math.max(1, sleeping)));
+            }
         }
 
         if (time >= (dayTime - timeRate * 1.5) && time <= dayTime) {
+            world.setTime(dayTime);
             if (config.getBoolean("night-skip.reset-phantom-statistic")) {
                 world.getPlayers().forEach(player -> player.setStatistic(Statistic.TIME_SINCE_REST, 0));
             }

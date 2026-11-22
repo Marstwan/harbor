@@ -46,7 +46,7 @@ public class Checker extends BukkitRunnable {
         // Default to 1 if its invalid
         if (interval <= 0)
             interval = 1;
-        runTaskTimer(harbor, 0L, interval * 20L);
+        runTaskTimer(harbor, 1L, interval * 20L);
     }
 
     @Override
@@ -91,10 +91,14 @@ public class Checker extends BukkitRunnable {
         int sleeping = 0;
         int activePlayers = 0;
         for (Player player : world.getPlayers()) {
-            if (!player.hasMetadata("NPC") && player.getPose() == Pose.SLEEPING) {
+            if (player.hasMetadata("NPC")) {
+                continue;
+            }
+            boolean playerSleeping = player.getPose() == Pose.SLEEPING;
+            if (playerSleeping) {
                 sleeping++;
             }
-            if (!isExcluded(player)) {
+            if (playerSleeping || !isExcluded(player)) {
                 activePlayers++;
             }
         }
@@ -104,11 +108,11 @@ public class Checker extends BukkitRunnable {
             return;
         }
 
-        int skipAmount = getSkipAmount(activePlayers);
+        int skipAmount = Math.max(1, getSkipAmount(activePlayers));
         int needed = Math.max(0, skipAmount - sleeping);
 
         if (needed > 0) {
-            double sleepingPercentage = skipAmount > 0 ? Math.min(1.0, (double) sleeping / skipAmount) : 1.0;
+            double sleepingPercentage = Math.min(1.0, (double) sleeping / skipAmount);
 
             messages.sendActionBarMessage(world, config.getString("messages.actionbar.players-sleeping"));
             messages.sendBossBarMessage(world, config.getString("messages.bossbar.players-sleeping.message"),
@@ -200,7 +204,10 @@ public class Checker extends BukkitRunnable {
     public int getPlayers(@NotNull World world) {
         int count = 0;
         for (Player player : world.getPlayers()) {
-            if (!isExcluded(player)) {
+            if (player.hasMetadata("NPC")) {
+                continue;
+            }
+            if (player.getPose() == Pose.SLEEPING || !isExcluded(player)) {
                 count++;
             }
         }
@@ -239,7 +246,7 @@ public class Checker extends BukkitRunnable {
      * @return The amount of players that need to sleep to skip the night.
      */
     public int getSkipAmount(int activePlayers) {
-        return (int) Math.ceil(activePlayers * (harbor.getConfiguration().getDouble("night-skip.percentage") / 100));
+        return Math.max(1, (int) Math.ceil(activePlayers * (harbor.getConfiguration().getDouble("night-skip.percentage") / 100)));
     }
 
     /**
@@ -297,6 +304,7 @@ public class Checker extends BukkitRunnable {
      */
     public void resetStatus(@NotNull World world) {
         wakeUpPlayers(world);
+        harbor.getMessages().clearBar(world);
         harbor.getServer().getScheduler().runTaskLater(harbor, () -> {
             skippingWorlds.remove(world.getUID());
             harbor.getPlayerManager().clearCooldowns();

@@ -183,7 +183,9 @@ public class Messages implements Listener {
 
     @EventHandler
     public void onWorldLoad(@NotNull WorldLoadEvent event) {
-        registerBar(event.getWorld());
+        if (!harbor.getChecker().isBlacklisted(event.getWorld())) {
+            registerBar(event.getWorld());
+        }
     }
 
     @EventHandler
