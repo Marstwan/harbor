@@ -3,6 +3,11 @@ name: CI
 on:
   push:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload asset to'
+        required: false
+        default: '1.8.0-BETA'
   release:
     types: [published, edited]
 
@@ -32,5 +37,5 @@ jobs:
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || '1.7.0' }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag || '1.8.0-BETA' }}
         run: gh release upload "$RELEASE_TAG" target/Harbor-*.jar --clobber

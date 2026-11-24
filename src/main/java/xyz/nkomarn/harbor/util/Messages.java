@@ -16,11 +16,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.nkomarn.harbor.Harbor;
 import xyz.nkomarn.harbor.task.Checker;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +48,21 @@ public class Messages implements Listener {
 
             registerBar(world);
         }
+    }
+
+    /**
+     * Converts Minecraft world ticks (0 = 06:00) into 24-hour HH:MM format.
+     *
+     * @param world The world context.
+     * @return Formatted time string (e.g. "23:45").
+     */
+    @NotNull
+    public static String formatWorldTime(@NotNull World world) {
+        long time = world.getTime();
+        int totalMinutes = (int) (((time + 6000) % 24000) * 60 / 1000);
+        int hours = (totalMinutes / 60) % 24;
+        int minutes = totalMinutes % 60;
+        return String.format(Locale.ROOT, "%02d:%02d", hours, minutes);
     }
 
     /**
@@ -79,6 +96,51 @@ public class Messages implements Listener {
         BaseComponent preparedMessage = TextComponent.fromLegacy(prepareMessage(world, message));
         for (Player player : world.getPlayers()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, preparedMessage);
+        }
+    }
+
+    /**
+     * Sends a center-screen title and subtitle to all players in a given world.
+     *
+     * @param world    The world context.
+     * @param title    The main title text.
+     * @param subtitle The subtitle text.
+     * @param fadeIn   Fade-in duration in ticks.
+     * @param stay     Stay duration in ticks.
+     * @param fadeOut  Fade-out duration in ticks.
+     */
+    public void sendWorldTitle(@NotNull World world, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
+        sendWorldTitle(world, null, title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    /**
+     * Sends a center-screen title and subtitle to all players in a given world, with optional player placeholders.
+     *
+     * @param world         The world context.
+     * @param contextPlayer Optional player context for [player] and [displayname] placeholders.
+     * @param title         The main title text.
+     * @param subtitle      The subtitle text.
+     * @param fadeIn        Fade-in duration in ticks.
+     * @param stay          Stay duration in ticks.
+     * @param fadeOut       Fade-out duration in ticks.
+     */
+    public void sendWorldTitle(@NotNull World world, @Nullable Player contextPlayer, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
+        if (!config.getBoolean("messages.title.enabled")) {
+            return;
+        }
+        if (title.isEmpty() && subtitle.isEmpty()) {
+            return;
+        }
+
+        String preparedTitle = contextPlayer != null
+                ? prepareMessage(world, preparePlayerPlaceholders(contextPlayer, title))
+                : prepareMessage(world, title);
+        String preparedSubtitle = contextPlayer != null
+                ? prepareMessage(world, preparePlayerPlaceholders(contextPlayer, subtitle))
+                : prepareMessage(world, subtitle);
+
+        for (Player player : world.getPlayers()) {
+            player.sendTitle(preparedTitle, preparedSubtitle, fadeIn, stay, fadeOut);
         }
     }
 
@@ -124,13 +186,13 @@ public class Messages implements Listener {
         }
 
         bar.setTitle(prepareMessage(world, message));
-        bar.setColor(Enums.getIfPresent(BarColor.class, color).or(BarColor.BLUE));
+        bar.setColor(Enums.getIfPresent(BarColor.class, color.toUpperCase(Locale.ROOT)).or(BarColor.BLUE));
         bar.setProgress(Math.max(0.0, Math.min(1.0, percentage)));
         world.getPlayers().forEach(bar::addPlayer);
     }
 
     /**
-     * Replaces all available placeholders in a given string.
+     * Replaces all available world placeholders in a given string and colorizes it.
      *
      * @param world   The world context.
      * @param message The raw message with placeholders.
@@ -144,14 +206,18 @@ public class Messages implements Listener {
         int needed = checker.getSkipAmount(players);
         int more = Math.max(0, needed - sleeping);
         return Config.colorize(message
+                .replace("[time]", formatWorldTime(world))
                 .replace("[sleeping]", String.valueOf(sleeping))
                 .replace("[players]", String.valueOf(players))
                 .replace("[needed]", String.valueOf(needed))
                 .replace("[more]", String.valueOf(more)));
     }
 
+    /**
+     * Replaces player placeholders without translating color codes yet (so world placeholders can be applied next).
+     */
     @NotNull
-    public String prepareMessage(@NotNull Player player, @NotNull String message) {
+    private String preparePlayerPlaceholders(@NotNull Player player, @NotNull String message) {
         String output = message
                 .replace("[player]", player.getName())
                 .replace("[displayname]", player.getDisplayName());
@@ -159,8 +225,17 @@ public class Messages implements Listener {
         if (papiPresent) {
             output = PlaceholderAPI.setPlaceholders(player, output);
         }
+        return output;
+    }
 
-        return Config.colorize(output);
+    @NotNull
+    public String prepareMessage(@NotNull Player player, @NotNull String message) {
+        return Config.colorize(preparePlayerPlaceholders(player, message));
+    }
+
+    @NotNull
+    public String prepareMessage(@NotNull World world, @NotNull Player player, @NotNull String message) {
+        return prepareMessage(world, preparePlayerPlaceholders(player, message));
     }
 
     /**
@@ -168,7 +243,7 @@ public class Messages implements Listener {
      *
      * @param world The world in which to create the bossbar.
      */
-    private void registerBar(@NotNull World world) {
+    public void registerBar(@NotNull World world) {
         bossBars.computeIfAbsent(world.getUID(), uuid -> Bukkit.createBossBar("", BarColor.WHITE, BarStyle.SOLID));
     }
 
@@ -183,8 +258,10 @@ public class Messages implements Listener {
 
     @EventHandler
     public void onWorldLoad(@NotNull WorldLoadEvent event) {
-        if (!harbor.getChecker().isBlacklisted(event.getWorld())) {
-            registerBar(event.getWorld());
+        World world = event.getWorld();
+        harbor.getChecker().syncWorldGameRule(world);
+        if (!harbor.getChecker().isBlacklisted(world)) {
+            registerBar(world);
         }
     }
 

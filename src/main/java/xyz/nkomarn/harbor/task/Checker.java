@@ -1,6 +1,7 @@
 package xyz.nkomarn.harbor.task;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
@@ -16,8 +17,10 @@ import xyz.nkomarn.harbor.provider.GameModeExclusionProvider;
 import xyz.nkomarn.harbor.util.Config;
 import xyz.nkomarn.harbor.util.Messages;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,10 +30,16 @@ public class Checker extends BukkitRunnable {
     private final Set<ExclusionProvider> providers;
     private final Harbor harbor;
     private final Set<UUID> skippingWorlds;
+    private final Set<UUID> forcedWorlds;
+    private final Set<UUID> wakingWorlds;
+    private final Map<UUID, Integer> savedSleepingPercentages;
 
     public Checker(@NotNull Harbor harbor) {
         this.harbor = harbor;
         this.skippingWorlds = new HashSet<>();
+        this.forcedWorlds = new HashSet<>();
+        this.wakingWorlds = new HashSet<>();
+        this.savedSleepingPercentages = new HashMap<>();
         this.providers = new HashSet<>();
 
         // GameModeExclusionProvider checks each case on its own
@@ -42,11 +51,60 @@ public class Checker extends BukkitRunnable {
         providers.add(player -> harbor.getConfig().getBoolean("exclusions.exclude-vanished", false) && isVanished(player));
         providers.add(player -> harbor.getConfig().getBoolean("exclusions.exclude-afk", false) && harbor.getPlayerManager().isAfk(player));
 
+        syncAllWorldGameRules();
+
         int interval = harbor.getConfiguration().getInteger("interval");
-        // Default to 1 if its invalid
-        if (interval <= 0)
+        if (interval <= 0) {
             interval = 1;
+        }
         runTaskTimer(harbor, 1L, interval * 20L);
+    }
+
+    /**
+     * Synchronizes PLAYERS_SLEEPING_PERCENTAGE on all loaded worlds so vanilla Minecraft
+     * does not abruptly interrupt Harbor's smooth night-skip animation after 100 ticks in bed.
+     */
+    public void syncAllWorldGameRules() {
+        for (World world : Bukkit.getWorlds()) {
+            syncWorldGameRule(world);
+            if (!isBlacklisted(world) && harbor.getMessages() != null) {
+                harbor.getMessages().registerBar(world);
+            }
+        }
+    }
+
+    public void syncWorldGameRule(@NotNull World world) {
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return;
+        }
+        UUID uid = world.getUID();
+        boolean managedByHarbor = harbor.getConfiguration().getBoolean("night-skip.enabled") && !isBlacklisted(world);
+        if (managedByHarbor) {
+            Integer current = world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
+            if (current != null && current <= 100) {
+                savedSleepingPercentages.putIfAbsent(uid, current);
+                world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, 101);
+            }
+        } else {
+            restoreWorldGameRule(world);
+        }
+    }
+
+    public void restoreAllWorldGameRules() {
+        for (World world : Bukkit.getWorlds()) {
+            restoreWorldGameRule(world);
+        }
+        savedSleepingPercentages.clear();
+    }
+
+    private void restoreWorldGameRule(@NotNull World world) {
+        Integer previous = savedSleepingPercentages.remove(world.getUID());
+        if (previous != null) {
+            Integer current = world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
+            if (current != null && current == 101) {
+                world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, previous);
+            }
+        }
     }
 
     @Override
@@ -59,17 +117,27 @@ public class Checker extends BukkitRunnable {
     }
 
     /**
-     * Checks if a given world is applicable for night skipping.
+     * Immediately evaluates a world (called when a player enters or leaves a bed).
+     *
+     * @param world The world to evaluate.
+     */
+    public void checkWorldNow(@NotNull World world) {
+        if (validateWorld(world)) {
+            checkWorld(world);
+        }
+    }
+
+    /**
+     * Checks if a given world is applicable for night/storm skipping.
      *
      * @param world The world to check.
-     *
      * @return Whether Harbor should run the night skipping check below.
      */
     private boolean validateWorld(@NotNull World world) {
         if (skippingWorlds.contains(world.getUID()) || isBlacklisted(world)) {
             return false;
         }
-        if (!isNight(world)) {
+        if (!isSleepPossible(world)) {
             Messages messages = harbor.getMessages();
             if (messages != null) {
                 messages.clearBar(world);
@@ -94,7 +162,7 @@ public class Checker extends BukkitRunnable {
             if (player.hasMetadata("NPC")) {
                 continue;
             }
-            boolean playerSleeping = player.getPose() == Pose.SLEEPING;
+            boolean playerSleeping = isPlayerSleeping(player);
             if (playerSleeping) {
                 sleeping++;
             }
@@ -126,9 +194,25 @@ public class Checker extends BukkitRunnable {
                 return;
             }
 
-            if (config.getBoolean("night-skip.instant-skip")) {
+            syncWorldGameRule(world);
+
+            // Daytime thunderstorm: clear weather & wake players without spinning the clock 24h
+            if (!isNight(world) && world.isThundering()) {
+                skippingWorlds.add(world.getUID());
                 Bukkit.getScheduler().runTask(harbor, () -> {
-                    int dayTime = config.getInteger("night-skip.daytime-ticks");
+                    if (config.getBoolean("night-skip.reset-phantom-statistic")) {
+                        world.getPlayers().forEach(player -> player.setStatistic(Statistic.TIME_SINCE_REST, 0));
+                    }
+                    clearWeather(world);
+                    finishSkip(world);
+                });
+                return;
+            }
+
+            if (config.getBoolean("night-skip.instant-skip")) {
+                skippingWorlds.add(world.getUID());
+                Bukkit.getScheduler().runTask(harbor, () -> {
+                    int dayTime = Math.max(150, config.getInteger("night-skip.daytime-ticks"));
                     long skipAmountTicks = (dayTime - world.getTime() + 24000) % 24000;
                     TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP, skipAmountTicks);
                     Bukkit.getPluginManager().callEvent(event);
@@ -138,34 +222,46 @@ public class Checker extends BukkitRunnable {
                             world.getPlayers().forEach(player -> player.setStatistic(Statistic.TIME_SINCE_REST, 0));
                         }
                         clearWeather(world);
-                        resetStatus(world);
+                        finishSkip(world);
+                    } else {
+                        skippingWorlds.remove(world.getUID());
                     }
                 });
                 return;
             }
 
             skippingWorlds.add(world.getUID());
+            forcedWorlds.remove(world.getUID());
             new AccelerateNightTask(harbor, this, world);
         }
     }
 
+    private static boolean isPlayerSleeping(@NotNull Player player) {
+        return player.isSleeping() || player.getPose() == Pose.SLEEPING;
+    }
+
     /**
-     * Checks if the time in a given world is considered to be night.
+     * Checks if players can currently sleep in the provided world (nighttime or thunderstorm).
+     */
+    public boolean isSleepPossible(@NotNull World world) {
+        return isNight(world) || world.isThundering();
+    }
+
+    /**
+     * Checks if the time in a given world is considered to be night (matching vanilla bed window 12541..23999).
      *
      * @param world The world to check.
-     *
      * @return Whether it is currently night in the provided world.
      */
-    private boolean isNight(@NotNull World world) {
+    public boolean isNight(@NotNull World world) {
         long time = world.getTime();
-        return time > 12950 && time < 23950;
+        return time >= 12541 && time <= 23990;
     }
 
     /**
      * Checks if a current world has been blacklisted (or whitelisted) in the configuration.
      *
      * @param world The world to check.
-     *
      * @return Whether a world is excluded from Harbor checks.
      */
     public boolean isBlacklisted(@NotNull World world) {
@@ -182,7 +278,6 @@ public class Checker extends BukkitRunnable {
      * Checks if a given player is in a vanished state.
      *
      * @param player The player to check.
-     *
      * @return Whether the provided player is vanished.
      */
     public static boolean isVanished(@NotNull Player player) {
@@ -198,7 +293,6 @@ public class Checker extends BukkitRunnable {
      * Returns the amount of players that should be counted for Harbor's checks, ignoring excluded players.
      *
      * @param world The world for which to check player count.
-     *
      * @return The amount of players in a given world, minus excluded players.
      */
     public int getPlayers(@NotNull World world) {
@@ -207,7 +301,7 @@ public class Checker extends BukkitRunnable {
             if (player.hasMetadata("NPC")) {
                 continue;
             }
-            if (player.getPose() == Pose.SLEEPING || !isExcluded(player)) {
+            if (isPlayerSleeping(player) || !isExcluded(player)) {
                 count++;
             }
         }
@@ -218,13 +312,12 @@ public class Checker extends BukkitRunnable {
      * Returns a list of all sleeping players in a given world.
      *
      * @param world The world in which to check for sleeping players.
-     *
      * @return A list of all currently sleeping players in the provided world.
      */
     @NotNull
     public List<Player> getSleepingPlayers(@NotNull World world) {
         return world.getPlayers().stream()
-                .filter(player -> !player.hasMetadata("NPC") && player.getPose() == Pose.SLEEPING)
+                .filter(player -> !player.hasMetadata("NPC") && isPlayerSleeping(player))
                 .collect(toList());
     }
 
@@ -232,7 +325,6 @@ public class Checker extends BukkitRunnable {
      * Returns the amount of players that must be sleeping to skip the night in the given world.
      *
      * @param world The world for which to check skip amount.
-     *
      * @return The amount of players that need to sleep to skip the night.
      */
     public int getSkipAmount(@NotNull World world) {
@@ -253,7 +345,6 @@ public class Checker extends BukkitRunnable {
      * Returns the amount of players that are still needed to skip the night in a given world.
      *
      * @param world The world for which to check the amount of needed players.
-     *
      * @return The amount of players that still need to get into bed to start the night skipping task.
      */
     public int getNeeded(@NotNull World world) {
@@ -264,7 +355,6 @@ public class Checker extends BukkitRunnable {
      * Checks if a given player is considered excluded from Harbor's checks.
      *
      * @param player The player to check.
-     *
      * @return Whether the given player is excluded.
      */
     private boolean isExcluded(@NotNull Player player) {
@@ -280,37 +370,98 @@ public class Checker extends BukkitRunnable {
      * Checks whether the night is currently being skipped in the given world.
      *
      * @param world The world to check.
-     *
      * @return Whether the night is currently skipping in the provided world.
      */
     public boolean isSkipping(@NotNull World world) {
         return skippingWorlds.contains(world.getUID());
     }
 
+    public boolean isForcedSkip(@NotNull World world) {
+        return forcedWorlds.contains(world.getUID());
+    }
+
+    public boolean isWakingUp(@NotNull World world) {
+        return wakingWorlds.contains(world.getUID());
+    }
+
     /**
-     * Forces a world to begin skipping the night, skipping over the checks.
+     * Forces a world to begin skipping the night, skipping over the player sleep count checks.
      *
      * @param world The world in which to force night skipping.
      */
     public void forceSkip(@NotNull World world) {
+        if (!isNight(world) && world.hasStorm()) {
+            skippingWorlds.add(world.getUID());
+            clearWeather(world);
+            finishSkip(world);
+            return;
+        }
         skippingWorlds.add(world.getUID());
+        forcedWorlds.add(world.getUID());
         new AccelerateNightTask(harbor, this, world);
     }
 
     /**
-     * Resets the provided world to a non-skipping status.
+     * Cancels an in-progress night skip when players leave their beds.
      *
-     * @param world The world for which to reset status.
+     * @param world The world in which night skipping was cancelled.
+     */
+    public void cancelSkip(@NotNull World world) {
+        UUID uid = world.getUID();
+        skippingWorlds.remove(uid);
+        forcedWorlds.remove(uid);
+
+        Config config = harbor.getConfiguration();
+        Messages messages = harbor.getMessages();
+
+        messages.clearBar(world);
+        messages.sendWorldTitle(
+                world,
+                config.getString("messages.title.skip-cancelled.title"),
+                config.getString("messages.title.skip-cancelled.subtitle"),
+                5, 45, 15
+        );
+        messages.sendWorldChatMessage(world, config.getString("messages.chat.skip-cancelled"));
+
+        // Re-evaluate world state so BossBar reflects any remaining sleeping players
+        checkWorldNow(world);
+    }
+
+    /**
+     * Completes a night skip, wakes up players cleanly, clears bars, and sends morning notifications.
+     *
+     * @param world The world for which to complete the skip.
+     */
+    public void finishSkip(@NotNull World world) {
+        UUID uid = world.getUID();
+        wakingWorlds.add(uid);
+        wakeUpPlayers(world);
+
+        Config config = harbor.getConfiguration();
+        Messages messages = harbor.getMessages();
+        messages.clearBar(world);
+        messages.sendWorldTitle(
+                world,
+                config.getString("messages.title.night-skipped.title"),
+                config.getString("messages.title.night-skipped.subtitle"),
+                10, 50, 20
+        );
+
+        harbor.getServer().getScheduler().runTaskLater(harbor, () -> {
+            skippingWorlds.remove(uid);
+            forcedWorlds.remove(uid);
+            wakingWorlds.remove(uid);
+            harbor.getPlayerManager().clearCooldowns();
+            messages.clearBar(world);
+            messages.sendRandomChatMessage(world, "messages.chat.night-skipped");
+        }, 20L);
+    }
+
+    /**
+     * Alias kept for backwards API compatibility.
      */
     public void resetStatus(@NotNull World world) {
-        wakeUpPlayers(world);
-        harbor.getMessages().clearBar(world);
-        harbor.getServer().getScheduler().runTaskLater(harbor, () -> {
-            skippingWorlds.remove(world.getUID());
-            harbor.getPlayerManager().clearCooldowns();
-            harbor.getMessages().clearBar(world);
-            harbor.getMessages().sendRandomChatMessage(world, "messages.chat.night-skipped");
-        }, 20L);
+        finishSkip(world);
     }
 
     /**

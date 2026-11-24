@@ -51,6 +51,7 @@ public class Harbor extends JavaPlugin {
     public void onDisable() {
         if (checker != null) {
             checker.cancel();
+            checker.restoreAllWorldGameRules();
         }
         if (messages != null) {
             for (World world : getServer().getWorlds()) {

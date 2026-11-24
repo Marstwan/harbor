@@ -3,7 +3,7 @@ description: "Harbor redefines how sleep works in your server, making it easier 
 main: "xyz.nkomarn.harbor.Harbor"
 author: "Marstwan"
 website: "https://github.com/Marstwan/harbor"
-version: "1.7.0"
+version: "1.8.0-BETA"
 api-version: "26.3"
 
 softdepend:

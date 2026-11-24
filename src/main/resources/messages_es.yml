@@ -12,6 +12,23 @@ messages:
       - "&eAhhh, por fin es de día."
       - "&e¡Qué brillante está el sol afuera!"
       - "&eArriba, ya ha amanecido."
+    skip-cancelled: "&c¡Se ha cancelado el salto de la noche porque alguien se levantó de la cama!"
+  title:
+    players-sleeping:
+      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7está durmiendo &8• &fFaltan [more]"
+    player-left-bed:
+      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7se ha levantado &8• &fFaltan [more]"
+    night-skipping:
+      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
+      subtitle: "&#c0caf5Pasando la noche... ¡Dulces sueños!"
+    night-skipped:
+      title: "&#e0af68☀ &f&l¡Buenos días!"
+      subtitle: "&#9ece6aYa ha amanecido."
+    skip-cancelled:
+      title: "&#f7768e✕ &f&lSalto cancelado"
+      subtitle: "&7Faltan jugadores durmiendo ([sleeping]/[needed])"
   actionbar:
     players-sleeping: "&e[sleeping] de [needed] jugadores están durmiendo (faltan [more] para saltar)"
     night-skipping: "&e¡Todos están durmiendo, dulces sueños!"

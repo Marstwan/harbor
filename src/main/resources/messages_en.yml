@@ -12,6 +12,23 @@ messages:
       - "&eAhhh, finally morning."
       - "&eArghh, it's so bright outside."
       - "&eRise and shine."
+    skip-cancelled: "&cNight skip cancelled because someone got out of bed!"
+  title:
+    players-sleeping:
+      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7is sleeping &8• &f[more] more needed"
+    player-left-bed:
+      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7left bed &8• &f[more] more needed"
+    night-skipping:
+      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
+      subtitle: "&#c0caf5Accelerating the night... Sweet dreams!"
+    night-skipped:
+      title: "&#e0af68☀ &f&lGood Morning!"
+      subtitle: "&#9ece6aThe night has been skipped."
+    skip-cancelled:
+      title: "&#f7768e✕ &f&lSkip Cancelled"
+      subtitle: "&7Not enough players sleeping ([sleeping]/[needed])"
   actionbar:
     players-sleeping: "&e[sleeping] out of [needed] players are sleeping ([more] more needed to skip)"
     night-skipping: "&eEveryone is sleeping- sweet dreams!"

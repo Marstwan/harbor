@@ -13,9 +13,10 @@ night-skip:
   daytime-ticks: 1200 # The time in ticks that Harbor considers day
   instant-skip: false # Instantly skip the night when the percentage threshold is reached instead of showing the full animation
   proportional-acceleration: false # Increase the night skipping speed based on the amount of sleeping players
+  cancel-on-wake: true # Cancel night acceleration if players get out of bed and fall below the required percentage
   clear-rain: true # Clear rain (if it's raining) when the night is skipped
   clear-thunder: true # Clear thunder (if it's thundering) when the night is skipped
-  reset-phantom-statistic: true # Treats everyone online as if they have slept in the last 3 days after the night is skipped (check out /gamerule doInsomnia on 1.15+)
+  reset-phantom-statistic: true # Treats everyone online as if they have slept in the last 3 days after the night is skipped
 
 exclusions:
   ignored-permission: true # Exclude players with the permission "harbor.ignored" from the sleeping count
@@ -46,7 +47,7 @@ language: en
 
 messages:
   chat:
-    enabled: true
+    enabled: false
     message-cooldown: 5 # The amount of time in seconds before a player can send another bed enter or leave message
     player-sleeping: "&e[player] is now sleeping ([sleeping]/[needed], [more] more needed to skip)."
     player-left-bed: "&e[player] got out of bed ([sleeping]/[needed], [more] more needed to skip)."
@@ -58,8 +59,26 @@ messages:
       - "&eAhhh, finally morning."
       - "&eArghh, it's so bright outside."
       - "&eRise and shine."
-  actionbar:
+    skip-cancelled: "&cNight skip cancelled because someone got out of bed!"
+  title:
     enabled: true
+    players-sleeping:
+      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7is sleeping &8• &f[more] more needed"
+    player-left-bed:
+      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7left bed &8• &f[more] more needed"
+    night-skipping:
+      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
+      subtitle: "&#c0caf5Accelerating the night... Sweet dreams!"
+    night-skipped:
+      title: "&#e0af68☀ &f&lGood Morning!"
+      subtitle: "&#9ece6aThe night has been skipped."
+    skip-cancelled:
+      title: "&#f7768e✕ &f&lSkip Cancelled"
+      subtitle: "&7Not enough players sleeping ([sleeping]/[needed])"
+  actionbar:
+    enabled: false
     players-sleeping: "&e[sleeping] out of [needed] players are sleeping ([more] more needed to skip)"
     night-skipping: "&eEveryone is sleeping- sweet dreams!"
   bossbar:
@@ -79,6 +98,6 @@ messages:
     forcing-skip: "Forcing night skip in your world."
 
 # Spooky internal controls
-version: 1.7.0
+version: 1.8.0
 interval: 1
 debug: false

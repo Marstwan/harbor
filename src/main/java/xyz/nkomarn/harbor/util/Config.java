@@ -24,8 +24,35 @@ public class Config {
     public Config(@NotNull Harbor harbor) {
         this.harbor = harbor;
         harbor.saveDefaultConfig();
+        migrateConfig();
         saveDefaultLanguages();
         loadLanguage();
+    }
+
+    private void migrateConfig() {
+        File configFile = new File(harbor.getDataFolder(), "config.yml");
+        if (!configFile.exists()) {
+            return;
+        }
+        try (InputStream defStream = harbor.getResource("config.yml")) {
+            if (defStream == null) {
+                return;
+            }
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defStream, StandardCharsets.UTF_8));
+            FileConfiguration current = harbor.getConfig();
+            boolean updated = false;
+            for (String key : defaultConfig.getKeys(true)) {
+                if (!defaultConfig.isConfigurationSection(key) && !current.isSet(key)) {
+                    current.set(key, defaultConfig.get(key));
+                    updated = true;
+                }
+            }
+            if (updated) {
+                current.save(configFile);
+            }
+        } catch (Exception e) {
+            harbor.getLogger().warning("Could not update config.yml with new default keys: " + e.getMessage());
+        }
     }
 
     private void saveDefaultLanguages() {
@@ -34,6 +61,25 @@ public class Config {
             File langFile = new File(harbor.getDataFolder(), fileName);
             if (!langFile.exists()) {
                 harbor.saveResource(fileName, false);
+                continue;
+            }
+            try (InputStream defStream = harbor.getResource(fileName)) {
+                if (defStream == null) {
+                    continue;
+                }
+                YamlConfiguration defLang = YamlConfiguration.loadConfiguration(new InputStreamReader(defStream, StandardCharsets.UTF_8));
+                YamlConfiguration currentLang = YamlConfiguration.loadConfiguration(langFile);
+                boolean updated = false;
+                for (String key : defLang.getKeys(true)) {
+                    if (!defLang.isConfigurationSection(key) && !currentLang.isSet(key)) {
+                        currentLang.set(key, defLang.get(key));
+                        updated = true;
+                    }
+                }
+                if (updated) {
+                    currentLang.save(langFile);
+                }
+            } catch (Exception ignored) {
             }
         }
     }
@@ -107,8 +153,12 @@ public class Config {
      */
     public void reload() {
         harbor.reloadConfig();
+        migrateConfig();
         saveDefaultLanguages();
         loadLanguage();
+        if (harbor.getChecker() != null) {
+            harbor.getChecker().syncAllWorldGameRules();
+        }
     }
 
     /**

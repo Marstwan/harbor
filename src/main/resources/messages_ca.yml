@@ -12,6 +12,23 @@ messages:
       - "&eAhhh, per fi és de dia."
       - "&eQue brillant és el sol a fora!"
       - "&eAmunt, ja s'ha fet de dia."
+    skip-cancelled: "&cS'ha cancel·lat el salt de la nit perquè algú s'ha aixecat del llit!"
+  title:
+    players-sleeping:
+      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7està dormint &8• &fEn falten [more]"
+    player-left-bed:
+      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
+      subtitle: "&e[player] &7s'ha aixecat &8• &fEn falten [more]"
+    night-skipping:
+      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
+      subtitle: "&#c0caf5Passant la nit... Dolços somnis!"
+    night-skipped:
+      title: "&#e0af68☀ &f&lBon dia!"
+      subtitle: "&#9ece6aJa s'ha fet de dia."
+    skip-cancelled:
+      title: "&#f7768e✕ &f&lSalt cancel·lat"
+      subtitle: "&7Falten jugadors dormint ([sleeping]/[needed])"
   actionbar:
     players-sleeping: "&e[sleeping] de [needed] jugadors estan dormint (en falten [more] per passar)"
     night-skipping: "&eTothom està dormint, dolços somnis!"
