@@ -79,13 +79,13 @@ public class BedListener implements Listener {
             return;
         }
 
-        // Ignore natural morning wakeups or wakeups triggered by Harbor finishing the skip
-        if (checker.isWakingUp(world) || (!checker.isSkipping(world) && !checker.isSleepPossible(world))) {
+        // Ignore natural morning wakeups (tick >= 23458 or daytime) or wakeups triggered by Harbor finishing the skip
+        if (checker.isWakingUp(world) || !checker.isSleepPossible(world)) {
             return;
         }
 
         Bukkit.getScheduler().runTaskLater(harbor, () -> {
-            if (!player.isOnline() || checker.isWakingUp(world)) {
+            if (!player.isOnline() || checker.isWakingUp(world) || !checker.isSleepPossible(world)) {
                 return;
             }
 

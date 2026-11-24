@@ -247,14 +247,15 @@ public class Checker extends BukkitRunnable {
     }
 
     /**
-     * Checks if the time in a given world is considered to be night (matching vanilla bed window 12541..23999).
+     * Checks if the time in a given world is considered to be night (matching vanilla bed window 12541..23458).
+     * At tick 23459+, Minecraft automatically wakes sleeping players because dawn has arrived.
      *
      * @param world The world to check.
      * @return Whether it is currently night in the provided world.
      */
     public boolean isNight(@NotNull World world) {
         long time = world.getTime();
-        return time >= 12541 && time <= 23990;
+        return time >= 12541 && time < 23458;
     }
 
     /**

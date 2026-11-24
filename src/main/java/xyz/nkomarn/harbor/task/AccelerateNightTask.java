@@ -27,6 +27,7 @@ public class AccelerateNightTask extends BukkitRunnable {
         this.totalTicksToSkip = Math.max(1L, (dayTime - world.getTime() + 24000) % 24000);
 
         harbor.getMessages().sendRandomChatMessage(world, "messages.chat.night-skipping");
+        checker.clearWeather(world);
         runTaskTimer(harbor, 1L, 1L);
     }
 
@@ -35,8 +36,12 @@ public class AccelerateNightTask extends BukkitRunnable {
         Config config = harbor.getConfiguration();
         Messages messages = harbor.getMessages();
 
-        // Cancel night acceleration if players left their beds and threshold is no longer met (unless /forceskip)
-        if (!checker.isForcedSkip(world) && config.getBoolean("night-skip.cancel-on-wake")) {
+        long time = world.getTime();
+
+        // Only allow cancel-on-wake while it is still night (12541..23457), before vanilla dawn auto-wakes players at 23458+
+        if (!checker.isForcedSkip(world)
+                && config.getBoolean("night-skip.cancel-on-wake")
+                && checker.isNight(world)) {
             if (checker.getNeeded(world) > 0 || checker.getSleepingPlayers(world).isEmpty()) {
                 checker.cancelSkip(world);
                 cancel();
@@ -44,7 +49,6 @@ public class AccelerateNightTask extends BukkitRunnable {
             }
         }
 
-        long time = world.getTime();
         double timeRate = Math.max(1, config.getInteger("night-skip.time-rate"));
         int dayTime = Math.max(0, Math.min(23999, config.getInteger("night-skip.daytime-ticks")));
         int sleeping = checker.getSleepingPlayers(world).size();
