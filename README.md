@@ -14,7 +14,7 @@ Download the latest version on the **[Releases page](https://github.com/Marstwan
 
 - **Percentage-Based Night Skip:** Skip the night smoothly (with a time-acceleration animation or instantly, and optional cancellation if players leave bed) when a percentage of players in a world are sleeping.
 - **Multi-Language Interface (`en`, `es`, `ca`):** Built-in translations for **English**, **Spanish (Castellano)**, and **Catalan (Català)** selectable directly in `config.yml` (`language: en | es | ca | custom`).
-- **Minimalist BossBar & ActionBar UI:** Non-invasive animated progress bar at the top of the screen and subtle ActionBar alerts above the hotbar (zero chat spam), supporting legacy color codes (`&a`) and **RGB Hex colors** (`&#RRGGBB` / `#RRGGBB`).
+- **Minimalist BossBar UI:** Clean, non-invasive animated progress bar at the top of the screen (zero chat or HUD clutter), supporting legacy color codes (`&a`) and **RGB Hex colors** (`&#RRGGBB` / `#RRGGBB`).
 - **Smart Player Exclusions:** Automatically ignores AFK players (with built-in fallback detection or **EssentialsX** integration), vanished players, NPCs, specific game modes, or players with `harbor.ignored`.
 - **Weather & Phantom Control:** Automatically clears rain/thunder and resets phantom insomnia statistics upon skipping the night.
 - **PlaceholderAPI Support:** Full support for PlaceholderAPI placeholders in player sleep notifications.

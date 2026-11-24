@@ -46,12 +46,6 @@ whitelist-mode: false # Will treat the above list as a whitelist instead of a bl
 language: en
 
 messages:
-  actionbar:
-    enabled: true
-    player-sleeping: "&#7aa2f7☽ &f[player] &7is now sleeping &8(&f[sleeping]&7/&f[needed]&8)"
-    player-left-bed: "&#f7768e☽ &f[player] &7got out of bed &8(&f[sleeping]&7/&f[needed]&8)"
-    players-sleeping: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] &7sleeping &8• &7[more] more needed"
-    night-skipping: "&#bb9af7✦ &fSkipping the night... &7([progress]%)"
   bossbar:
     enabled: true
     players-sleeping:

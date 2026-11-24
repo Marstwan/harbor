@@ -1,11 +1,6 @@
 # Harbor - Archivo de idioma en Castellano (es)
 
 messages:
-  actionbar:
-    player-sleeping: "&#7aa2f7☽ &f[player] &7se ha acostado &8(&f[sleeping]&7/&f[needed]&8)"
-    player-left-bed: "&#f7768e☽ &f[player] &7se ha levantado &8(&f[sleeping]&7/&f[needed]&8)"
-    players-sleeping: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] &7durmiendo &8• &7Faltan [more]"
-    night-skipping: "&#bb9af7✦ &fPasando la noche... &7([progress]%)"
   bossbar:
     players-sleeping:
       message: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] durmiendo &8• &7Faltan [more]"

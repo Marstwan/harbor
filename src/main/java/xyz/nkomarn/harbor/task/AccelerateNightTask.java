@@ -16,7 +16,6 @@ public class AccelerateNightTask extends BukkitRunnable {
     private final Checker checker;
     private final World world;
     private final long totalTicksToSkip;
-    private int tickCounter = 0;
 
     public AccelerateNightTask(@NotNull Harbor harbor, @NotNull Checker checker, @NotNull World world) {
         this.harbor = harbor;
@@ -92,22 +91,12 @@ public class AccelerateNightTask extends BukkitRunnable {
 
         long updatedRemaining = (dayTime - world.getTime() + 24000) % 24000;
         double progress = Math.max(0.02, Math.min(1.0, 1.0 - ((double) updatedRemaining / totalTicksToSkip)));
-        int progressPercent = (int) Math.round(progress * 100.0);
 
-        // Update BossBar smooth progress on every tick and ActionBar every 2 ticks
         messages.sendBossBarMessage(
                 world,
                 config.getString("messages.bossbar.night-skipping.message"),
                 config.getString("messages.bossbar.night-skipping.color"),
                 progress
         );
-        if (tickCounter++ % 2 == 0) {
-            messages.sendActionBarMessage(
-                    world,
-                    null,
-                    config.getString("messages.actionbar.night-skipping"),
-                    progressPercent
-            );
-        }
     }
 }

@@ -11,17 +11,13 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.jetbrains.annotations.NotNull;
 import xyz.nkomarn.harbor.Harbor;
 import xyz.nkomarn.harbor.task.Checker;
-import xyz.nkomarn.harbor.util.Config;
-import xyz.nkomarn.harbor.util.Messages;
 
 public class BedListener implements Listener {
 
     private final Harbor harbor;
-    private final Messages messages;
 
     public BedListener(@NotNull Harbor harbor) {
         this.harbor = harbor;
-        this.messages = harbor.getMessages();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -42,12 +38,6 @@ public class BedListener implements Listener {
             if (!player.isOnline()) {
                 return;
             }
-
-            Config config = harbor.getConfiguration();
-
-            // Notify all players in the world via subtle ActionBar above the hotbar
-            messages.sendActionBarMessage(world, player, config.getString("messages.actionbar.player-sleeping"), 0);
-
             // Immediately update BossBar / start night skip if threshold is reached
             checker.checkWorldNow(world);
         }, 1L);
@@ -72,17 +62,9 @@ public class BedListener implements Listener {
             if (!player.isOnline() || checker.isWakingUp(world) || !checker.isSleepPossible(world)) {
                 return;
             }
-
-            Config config = harbor.getConfiguration();
-
-            // Notify all players in the world via subtle ActionBar above the hotbar
-            messages.sendActionBarMessage(world, player, config.getString("messages.actionbar.player-left-bed"), 0);
-
-            // If night was currently accelerating, AccelerateNightTask handles the cancellation BossBar
             if (checker.isSkipping(world)) {
                 return;
             }
-
             checker.checkWorldNow(world);
         }, 1L);
     }

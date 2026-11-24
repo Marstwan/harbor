@@ -1,11 +1,6 @@
 # Harbor - Fitxer d'idioma en Català (ca)
 
 messages:
-  actionbar:
-    player-sleeping: "&#7aa2f7☽ &f[player] &7s'ha ficat al llit &8(&f[sleeping]&7/&f[needed]&8)"
-    player-left-bed: "&#f7768e☽ &f[player] &7s'ha aixecat &8(&f[sleeping]&7/&f[needed]&8)"
-    players-sleeping: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] &7dormint &8• &7En falten [more]"
-    night-skipping: "&#bb9af7✦ &fPassant la nit... &7([progress]%)"
   bossbar:
     players-sleeping:
       message: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] dormint &8• &7En falten [more]"

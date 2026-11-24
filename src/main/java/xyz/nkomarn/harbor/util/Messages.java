@@ -2,9 +2,6 @@ package xyz.nkomarn.harbor.util;
 
 import com.google.common.base.Enums;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.boss.BarColor;
@@ -52,32 +49,6 @@ public class Messages implements Listener {
     }
 
     /**
-     * Sends an actionbar message to all players in a given world.
-     *
-     * @param world   The world context.
-     * @param message The message to send.
-     */
-    public void sendActionBarMessage(@NotNull World world, @NotNull String message) {
-        sendActionBarMessage(world, null, message, 0);
-    }
-
-    /**
-     * Sends an actionbar message to all players in a given world with optional player and progress context.
-     */
-    public void sendActionBarMessage(@NotNull World world, @Nullable Player contextPlayer, @NotNull String message, int progressPercent) {
-        if (!config.getBoolean("messages.actionbar.enabled") || message.isEmpty()) {
-            return;
-        }
-
-        String raw = contextPlayer != null ? preparePlayerPlaceholders(contextPlayer, message) : message;
-        String prepared = prepareMessage(world, raw.replace("[progress]", String.valueOf(progressPercent)));
-        BaseComponent component = TextComponent.fromLegacy(prepared);
-        for (Player player : world.getPlayers()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
-        }
-    }
-
-    /**
      * Sets the message for the given world's bossbar.
      *
      * @param world      The world in which the bossbar exists.
@@ -86,6 +57,13 @@ public class Messages implements Listener {
      * @param percentage The bossbar percentage to set (0.0 to 1.0).
      */
     public void sendBossBarMessage(@NotNull World world, @NotNull String message, @NotNull String color, double percentage) {
+        sendBossBarMessage(world, null, message, color, percentage);
+    }
+
+    /**
+     * Sets the message for the given world's bossbar, with optional player placeholder context.
+     */
+    public void sendBossBarMessage(@NotNull World world, @Nullable Player contextPlayer, @NotNull String message, @NotNull String color, double percentage) {
         if (!config.getBoolean("messages.bossbar.enabled") || message.isEmpty()) {
             return;
         }
@@ -109,7 +87,8 @@ public class Messages implements Listener {
         double clamped = Math.max(0.0, Math.min(1.0, percentage));
         int progressPercent = (int) Math.round(clamped * 100.0);
 
-        bar.setTitle(prepareMessage(world, message.replace("[progress]", String.valueOf(progressPercent))));
+        String raw = contextPlayer != null ? preparePlayerPlaceholders(contextPlayer, message) : message;
+        bar.setTitle(prepareMessage(world, raw.replace("[progress]", String.valueOf(progressPercent))));
         bar.setColor(Enums.getIfPresent(BarColor.class, color.toUpperCase(Locale.ROOT)).or(BarColor.BLUE));
         bar.setProgress(clamped);
         for (Player player : world.getPlayers()) {
