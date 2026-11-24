@@ -186,11 +186,10 @@ public class Checker extends BukkitRunnable {
             messages.sendBossBarMessage(world, config.getString("messages.bossbar.players-sleeping.message"),
                     config.getString("messages.bossbar.players-sleeping.color"), sleepingPercentage);
         } else {
-            messages.sendActionBarMessage(world, config.getString("messages.actionbar.night-skipping"));
-            messages.sendBossBarMessage(world, config.getString("messages.bossbar.night-skipping.message"),
-                    config.getString("messages.bossbar.night-skipping.color"), 1);
-
             if (!config.getBoolean("night-skip.enabled")) {
+                messages.sendActionBarMessage(world, null, config.getString("messages.actionbar.night-skipping"), 100);
+                messages.sendBossBarMessage(world, config.getString("messages.bossbar.night-skipping.message"),
+                        config.getString("messages.bossbar.night-skipping.color"), 1.0);
                 return;
             }
 
@@ -414,21 +413,24 @@ public class Checker extends BukkitRunnable {
         Config config = harbor.getConfiguration();
         Messages messages = harbor.getMessages();
 
-        messages.clearBar(world);
-        messages.sendWorldTitle(
-                world,
-                config.getString("messages.title.skip-cancelled.title"),
-                config.getString("messages.title.skip-cancelled.subtitle"),
-                5, 45, 15
-        );
         messages.sendWorldChatMessage(world, config.getString("messages.chat.skip-cancelled"));
 
-        // Re-evaluate world state so BossBar reflects any remaining sleeping players
-        checkWorldNow(world);
+        // If some players are still sleeping, update the BossBar to their count; otherwise show brief red cancelled bar
+        if (!getSleepingPlayers(world).isEmpty()) {
+            checkWorldNow(world);
+        } else {
+            messages.sendTransientBossBar(
+                    world,
+                    config.getString("messages.bossbar.skip-cancelled.message"),
+                    config.getString("messages.bossbar.skip-cancelled.color"),
+                    1.0,
+                    50L
+            );
+        }
     }
 
     /**
-     * Completes a night skip, wakes up players cleanly, clears bars, and sends morning notifications.
+     * Completes a night skip, wakes up players cleanly, shows brief morning BossBar, and sends random chat phrase.
      *
      * @param world The world for which to complete the skip.
      */
@@ -439,12 +441,13 @@ public class Checker extends BukkitRunnable {
 
         Config config = harbor.getConfiguration();
         Messages messages = harbor.getMessages();
-        messages.clearBar(world);
-        messages.sendWorldTitle(
+
+        messages.sendTransientBossBar(
                 world,
-                config.getString("messages.title.night-skipped.title"),
-                config.getString("messages.title.night-skipped.subtitle"),
-                10, 50, 20
+                config.getString("messages.bossbar.night-skipped.message"),
+                config.getString("messages.bossbar.night-skipped.color"),
+                1.0,
+                60L
         );
 
         harbor.getServer().getScheduler().runTaskLater(harbor, () -> {
@@ -452,7 +455,6 @@ public class Checker extends BukkitRunnable {
             forcedWorlds.remove(uid);
             wakingWorlds.remove(uid);
             harbor.getPlayerManager().clearCooldowns();
-            messages.clearBar(world);
             messages.sendRandomChatMessage(world, "messages.chat.night-skipped");
         }, 20L);
     }

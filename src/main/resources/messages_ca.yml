@@ -12,31 +12,21 @@ messages:
       - "&eAhhh, per fi és de dia."
       - "&eQue brillant és el sol a fora!"
       - "&eAmunt, ja s'ha fet de dia."
-    skip-cancelled: "&cS'ha cancel·lat el salt de la nit perquè algú s'ha aixecat del llit!"
-  title:
-    players-sleeping:
-      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
-      subtitle: "&e[player] &7està dormint &8• &fEn falten [more]"
-    player-left-bed:
-      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
-      subtitle: "&e[player] &7s'ha aixecat &8• &fEn falten [more]"
-    night-skipping:
-      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
-      subtitle: "&#c0caf5Passant la nit... Dolços somnis!"
-    night-skipped:
-      title: "&#e0af68☀ &f&lBon dia!"
-      subtitle: "&#9ece6aJa s'ha fet de dia."
-    skip-cancelled:
-      title: "&#f7768e✕ &f&lSalt cancel·lat"
-      subtitle: "&7Falten jugadors dormint ([sleeping]/[needed])"
+    skip-cancelled: "&cSalt de la nit cancel·lat perquè algú s'ha aixecat del llit."
   actionbar:
-    players-sleeping: "&e[sleeping] de [needed] jugadors estan dormint (en falten [more] per passar)"
-    night-skipping: "&eTothom està dormint, dolços somnis!"
+    player-sleeping: "&#7aa2f7☽ &f[player] &7s'ha ficat al llit &8(&f[sleeping]&7/&f[needed]&8)"
+    player-left-bed: "&#f7768e☽ &f[player] &7s'ha aixecat &8(&f[sleeping]&7/&f[needed]&8)"
+    players-sleeping: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] &7dormint &8• &7En falten [more]"
+    night-skipping: "&#bb9af7✦ &fPassant la nit... &7([progress]%)"
   bossbar:
     players-sleeping:
-      message: "&f&l[sleeping] de [needed] estan dormint &7&l(en falten [more])"
+      message: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] dormint &8• &7En falten [more]"
     night-skipping:
-      message: "&f&lTothom està dormint. Dolços somnis!"
+      message: "&#bb9af7✦ &fPassant la nit... &7[progress]%"
+    night-skipped:
+      message: "&#e0af68☀ &fBon dia!"
+    skip-cancelled:
+      message: "&#f7768e✕ &fSalt de la nit cancel·lat"
   miscellaneous:
     chat-prefix: "&8&l(&6&lHarbor&8&l)&f "
     unrecognized-command: "Comanda desconeguda."

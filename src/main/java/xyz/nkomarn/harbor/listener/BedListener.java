@@ -49,23 +49,13 @@ public class BedListener implements Listener {
                 return;
             }
 
-            // Trigger immediate UI/skip evaluation instead of waiting up to 1 second
-            checker.checkWorldNow(world);
-
-            if (checker.isSkipping(world)) {
-                return;
-            }
-
             Config config = harbor.getConfiguration();
-            messages.sendWorldTitle(
-                    world,
-                    player,
-                    config.getString("messages.title.players-sleeping.title"),
-                    config.getString("messages.title.players-sleeping.subtitle"),
-                    5, 45, 15
-            );
 
-            if (!isChatCooldownActive(player)) {
+            // Send subtle ActionBar notification to all players in the world showing who got in bed
+            messages.sendActionBarMessage(world, player, config.getString("messages.actionbar.player-sleeping"), 0);
+
+            // Send classic Chat notification (respecting cooldown) BEFORE starting skip so everyone sees who slept
+            if (!checker.isSkipping(world) && !isChatCooldownActive(player)) {
                 playerManager.setCooldown(player, Instant.now());
                 String raw = config.getString("messages.chat.player-sleeping");
                 if (config.getBoolean("messages.chat.enabled") && !raw.isEmpty()) {
@@ -73,6 +63,9 @@ public class BedListener implements Listener {
                     world.getPlayers().forEach(p -> p.sendMessage(prepared));
                 }
             }
+
+            // Immediately update BossBar / start night skip if threshold is reached
+            checker.checkWorldNow(world);
         }, 1L);
     }
 
@@ -96,21 +89,17 @@ public class BedListener implements Listener {
                 return;
             }
 
-            // If night is currently accelerating, AccelerateNightTask handles cancellation if needed
+            Config config = harbor.getConfiguration();
+
+            // Send subtle ActionBar notification to everyone in the world showing who left bed
+            messages.sendActionBarMessage(world, player, config.getString("messages.actionbar.player-left-bed"), 0);
+
+            // If night was currently accelerating, AccelerateNightTask handles the cancellation banner & chat message
             if (checker.isSkipping(world)) {
                 return;
             }
 
             checker.checkWorldNow(world);
-
-            Config config = harbor.getConfiguration();
-            messages.sendWorldTitle(
-                    world,
-                    player,
-                    config.getString("messages.title.player-left-bed.title"),
-                    config.getString("messages.title.player-left-bed.subtitle"),
-                    5, 45, 15
-            );
 
             if (!isChatCooldownActive(player)) {
                 playerManager.setCooldown(player, Instant.now());

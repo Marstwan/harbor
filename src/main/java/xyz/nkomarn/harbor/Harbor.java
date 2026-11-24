@@ -55,7 +55,7 @@ public class Harbor extends JavaPlugin {
         }
         if (messages != null) {
             for (World world : getServer().getWorlds()) {
-                messages.clearBar(world);
+                messages.forceClearBar(world);
             }
         }
     }

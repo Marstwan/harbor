@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.bukkit.scheduler.BukkitTask;
 import xyz.nkomarn.harbor.Harbor;
 import xyz.nkomarn.harbor.task.Checker;
 
@@ -33,12 +34,14 @@ public class Messages implements Listener {
     private final Harbor harbor;
     private final Config config;
     private final Map<UUID, BossBar> bossBars;
+    private final Map<UUID, BukkitTask> transientBarTasks;
     private final boolean papiPresent;
 
     public Messages(@NotNull Harbor harbor) {
         this.harbor = harbor;
         this.config = harbor.getConfiguration();
         this.bossBars = new HashMap<>();
+        this.transientBarTasks = new HashMap<>();
         this.papiPresent = harbor.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
         for (World world : Bukkit.getWorlds()) {
@@ -48,21 +51,6 @@ public class Messages implements Listener {
 
             registerBar(world);
         }
-    }
-
-    /**
-     * Converts Minecraft world ticks (0 = 06:00) into 24-hour HH:MM format.
-     *
-     * @param world The world context.
-     * @return Formatted time string (e.g. "23:45").
-     */
-    @NotNull
-    public static String formatWorldTime(@NotNull World world) {
-        long time = world.getTime();
-        int totalMinutes = (int) (((time + 6000) % 24000) * 60 / 1000);
-        int hours = (totalMinutes / 60) % 24;
-        int minutes = totalMinutes % 60;
-        return String.format(Locale.ROOT, "%02d:%02d", hours, minutes);
     }
 
     /**
@@ -89,63 +77,27 @@ public class Messages implements Listener {
      * @param message The message to send.
      */
     public void sendActionBarMessage(@NotNull World world, @NotNull String message) {
+        sendActionBarMessage(world, null, message, 0);
+    }
+
+    /**
+     * Sends an actionbar message to all players in a given world with optional player and progress context.
+     */
+    public void sendActionBarMessage(@NotNull World world, @Nullable Player contextPlayer, @NotNull String message, int progressPercent) {
         if (!config.getBoolean("messages.actionbar.enabled") || message.isEmpty()) {
             return;
         }
 
-        BaseComponent preparedMessage = TextComponent.fromLegacy(prepareMessage(world, message));
+        String raw = contextPlayer != null ? preparePlayerPlaceholders(contextPlayer, message) : message;
+        String prepared = prepareMessage(world, raw.replace("[progress]", String.valueOf(progressPercent)));
+        BaseComponent component = TextComponent.fromLegacy(prepared);
         for (Player player : world.getPlayers()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, preparedMessage);
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
         }
     }
 
     /**
-     * Sends a center-screen title and subtitle to all players in a given world.
-     *
-     * @param world    The world context.
-     * @param title    The main title text.
-     * @param subtitle The subtitle text.
-     * @param fadeIn   Fade-in duration in ticks.
-     * @param stay     Stay duration in ticks.
-     * @param fadeOut  Fade-out duration in ticks.
-     */
-    public void sendWorldTitle(@NotNull World world, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
-        sendWorldTitle(world, null, title, subtitle, fadeIn, stay, fadeOut);
-    }
-
-    /**
-     * Sends a center-screen title and subtitle to all players in a given world, with optional player placeholders.
-     *
-     * @param world         The world context.
-     * @param contextPlayer Optional player context for [player] and [displayname] placeholders.
-     * @param title         The main title text.
-     * @param subtitle      The subtitle text.
-     * @param fadeIn        Fade-in duration in ticks.
-     * @param stay          Stay duration in ticks.
-     * @param fadeOut       Fade-out duration in ticks.
-     */
-    public void sendWorldTitle(@NotNull World world, @Nullable Player contextPlayer, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
-        if (!config.getBoolean("messages.title.enabled")) {
-            return;
-        }
-        if (title.isEmpty() && subtitle.isEmpty()) {
-            return;
-        }
-
-        String preparedTitle = contextPlayer != null
-                ? prepareMessage(world, preparePlayerPlaceholders(contextPlayer, title))
-                : prepareMessage(world, title);
-        String preparedSubtitle = contextPlayer != null
-                ? prepareMessage(world, preparePlayerPlaceholders(contextPlayer, subtitle))
-                : prepareMessage(world, subtitle);
-
-        for (Player player : world.getPlayers()) {
-            player.sendTitle(preparedTitle, preparedSubtitle, fadeIn, stay, fadeOut);
-        }
-    }
-
-    /**
-     * Selects a random message from a string list and sends it to the given world.
+     * Selects a random message from a string list and sends it to the given world's chat.
      *
      * @param world        The world context.
      * @param listLocation The location of the message list in the configuration.
@@ -167,28 +119,74 @@ public class Messages implements Listener {
      * @param world      The world in which the bossbar exists.
      * @param message    The message to set.
      * @param color      The bossbar color to set.
-     * @param percentage The bossbar percentage to set.
+     * @param percentage The bossbar percentage to set (0.0 to 1.0).
      */
     public void sendBossBarMessage(@NotNull World world, @NotNull String message, @NotNull String color, double percentage) {
         if (!config.getBoolean("messages.bossbar.enabled") || message.isEmpty()) {
             return;
         }
 
-        BossBar bar = bossBars.get(world.getUID());
+        cancelTransientBarTask(world.getUID());
 
+        BossBar bar = bossBars.get(world.getUID());
         if (bar == null) {
-            return;
+            registerBar(world);
+            bar = bossBars.get(world.getUID());
+            if (bar == null) {
+                return;
+            }
         }
 
-        if (percentage == 0) {
+        if (percentage <= 0) {
             bar.removeAll();
             return;
         }
 
-        bar.setTitle(prepareMessage(world, message));
+        double clamped = Math.max(0.0, Math.min(1.0, percentage));
+        int progressPercent = (int) Math.round(clamped * 100.0);
+
+        bar.setTitle(prepareMessage(world, message.replace("[progress]", String.valueOf(progressPercent))));
         bar.setColor(Enums.getIfPresent(BarColor.class, color.toUpperCase(Locale.ROOT)).or(BarColor.BLUE));
-        bar.setProgress(Math.max(0.0, Math.min(1.0, percentage)));
-        world.getPlayers().forEach(bar::addPlayer);
+        bar.setProgress(clamped);
+        for (Player player : world.getPlayers()) {
+            if (!bar.getPlayers().contains(player)) {
+                bar.addPlayer(player);
+            }
+        }
+    }
+
+    /**
+     * Shows a temporary BossBar banner (e.g. Good Morning or Cancelled) for a short duration, then clears it.
+     */
+    public void sendTransientBossBar(@NotNull World world, @NotNull String message, @NotNull String color, double percentage, long durationTicks) {
+        if (!config.getBoolean("messages.bossbar.enabled") || message.isEmpty()) {
+            return;
+        }
+
+        UUID uid = world.getUID();
+        cancelTransientBarTask(uid);
+
+        sendBossBarMessage(world, message, color, Math.max(0.01, percentage));
+
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(harbor, () -> {
+            transientBarTasks.remove(uid);
+            // Only clear if no players are actively sleeping again
+            if (!harbor.getChecker().isSkipping(world) && harbor.getChecker().getSleepingPlayers(world).isEmpty()) {
+                Optional.ofNullable(bossBars.get(uid)).ifPresent(BossBar::removeAll);
+            }
+        }, durationTicks);
+        transientBarTasks.put(uid, task);
+    }
+
+    public boolean hasActiveTransientBar(@NotNull World world) {
+        return transientBarTasks.containsKey(world.getUID());
+    }
+
+    private void cancelTransientBarTask(@NotNull UUID worldUid) {
+        BukkitTask existing = transientBarTasks.remove(worldUid);
+        if (existing != null) {
+            existing.cancel();
+        }
     }
 
     /**
@@ -206,16 +204,12 @@ public class Messages implements Listener {
         int needed = checker.getSkipAmount(players);
         int more = Math.max(0, needed - sleeping);
         return Config.colorize(message
-                .replace("[time]", formatWorldTime(world))
                 .replace("[sleeping]", String.valueOf(sleeping))
                 .replace("[players]", String.valueOf(players))
                 .replace("[needed]", String.valueOf(needed))
                 .replace("[more]", String.valueOf(more)));
     }
 
-    /**
-     * Replaces player placeholders without translating color codes yet (so world placeholders can be applied next).
-     */
     @NotNull
     private String preparePlayerPlaceholders(@NotNull Player player, @NotNull String message) {
         String output = message
@@ -248,11 +242,22 @@ public class Messages implements Listener {
     }
 
     /**
-     * Hides the bossbar for the given world if one is present.
+     * Hides the bossbar for the given world if one is present (unless a transient banner is currently displayed).
      *
      * @param world The world in which to hide the bossbar.
      */
     public void clearBar(@NotNull World world) {
+        if (hasActiveTransientBar(world)) {
+            return;
+        }
+        Optional.ofNullable(bossBars.get(world.getUID())).ifPresent(BossBar::removeAll);
+    }
+
+    /**
+     * Forcefully hides the bossbar and cancels any transient timer (used on plugin disable).
+     */
+    public void forceClearBar(@NotNull World world) {
+        cancelTransientBarTask(world.getUID());
         Optional.ofNullable(bossBars.get(world.getUID())).ifPresent(BossBar::removeAll);
     }
 

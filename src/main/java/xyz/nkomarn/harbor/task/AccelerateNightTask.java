@@ -15,12 +15,16 @@ public class AccelerateNightTask extends BukkitRunnable {
     private final Harbor harbor;
     private final Checker checker;
     private final World world;
+    private final long totalTicksToSkip;
     private int tickCounter = 0;
 
     public AccelerateNightTask(@NotNull Harbor harbor, @NotNull Checker checker, @NotNull World world) {
         this.harbor = harbor;
         this.checker = checker;
         this.world = world;
+
+        int dayTime = Math.max(0, Math.min(23999, harbor.getConfiguration().getInteger("night-skip.daytime-ticks")));
+        this.totalTicksToSkip = Math.max(1L, (dayTime - world.getTime() + 24000) % 24000);
 
         harbor.getMessages().sendRandomChatMessage(world, "messages.chat.night-skipping");
         runTaskTimer(harbor, 1L, 1L);
@@ -55,7 +59,7 @@ public class AccelerateNightTask extends BukkitRunnable {
         long step = (long) timeRate;
         long remainingToDay = (dayTime - time + 24000) % 24000;
 
-        // If we reached or are about to reach/cross dayTime on this step, finish cleanly!
+        // Finish cleanly as soon as we reach or cross dayTime
         if (remainingToDay <= step || (!checker.isNight(world) && time >= dayTime && time < 12541)) {
             if (remainingToDay > 0 && remainingToDay <= step) {
                 TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP, remainingToDay);
@@ -83,19 +87,23 @@ public class AccelerateNightTask extends BukkitRunnable {
             world.setTime(time + event.getSkipAmount());
         }
 
-        // Update live center-screen clock & bossbar smoothly every 2 ticks without fade-in flicker
+        long updatedRemaining = (dayTime - world.getTime() + 24000) % 24000;
+        double progress = Math.max(0.02, Math.min(1.0, 1.0 - ((double) updatedRemaining / totalTicksToSkip)));
+        int progressPercent = (int) Math.round(progress * 100.0);
+
+        // Update BossBar smooth progress on every tick and ActionBar every 2 ticks
+        messages.sendBossBarMessage(
+                world,
+                config.getString("messages.bossbar.night-skipping.message"),
+                config.getString("messages.bossbar.night-skipping.color"),
+                progress
+        );
         if (tickCounter++ % 2 == 0) {
-            messages.sendWorldTitle(
+            messages.sendActionBarMessage(
                     world,
-                    config.getString("messages.title.night-skipping.title"),
-                    config.getString("messages.title.night-skipping.subtitle"),
-                    0, 15, 5
-            );
-            messages.sendBossBarMessage(
-                    world,
-                    config.getString("messages.bossbar.night-skipping.message"),
-                    config.getString("messages.bossbar.night-skipping.color"),
-                    1.0
+                    null,
+                    config.getString("messages.actionbar.night-skipping"),
+                    progressPercent
             );
         }
     }

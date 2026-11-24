@@ -76,6 +76,15 @@ public class Config {
                         updated = true;
                     }
                 }
+                // Upgrade old static night-skipping BossBar/ActionBar messages to include minimalist [progress]%
+                String oldBossSkip = currentLang.getString("messages.bossbar.night-skipping.message", "");
+                if (oldBossSkip.startsWith("&f&l") && !oldBossSkip.contains("[progress]")) {
+                    currentLang.set("messages.bossbar.players-sleeping.message", defLang.getString("messages.bossbar.players-sleeping.message"));
+                    currentLang.set("messages.bossbar.night-skipping.message", defLang.getString("messages.bossbar.night-skipping.message"));
+                    currentLang.set("messages.actionbar.players-sleeping", defLang.getString("messages.actionbar.players-sleeping"));
+                    currentLang.set("messages.actionbar.night-skipping", defLang.getString("messages.actionbar.night-skipping"));
+                    updated = true;
+                }
                 if (updated) {
                     currentLang.save(langFile);
                 }

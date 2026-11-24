@@ -47,7 +47,7 @@ language: en
 
 messages:
   chat:
-    enabled: false
+    enabled: true
     message-cooldown: 5 # The amount of time in seconds before a player can send another bed enter or leave message
     player-sleeping: "&e[player] is now sleeping ([sleeping]/[needed], [more] more needed to skip)."
     player-left-bed: "&e[player] got out of bed ([sleeping]/[needed], [more] more needed to skip)."
@@ -59,36 +59,27 @@ messages:
       - "&eAhhh, finally morning."
       - "&eArghh, it's so bright outside."
       - "&eRise and shine."
-    skip-cancelled: "&cNight skip cancelled because someone got out of bed!"
-  title:
-    enabled: true
-    players-sleeping:
-      title: "&#7aa2f7☽ &f&l[sleeping] &7/ &f&l[needed]"
-      subtitle: "&e[player] &7is sleeping &8• &f[more] more needed"
-    player-left-bed:
-      title: "&#f7768e☽ &f&l[sleeping] &7/ &f&l[needed]"
-      subtitle: "&e[player] &7left bed &8• &f[more] more needed"
-    night-skipping:
-      title: "&#bb9af7✦ &f&l[time] &#e0af68➔ &#ff9e64☀"
-      subtitle: "&#c0caf5Accelerating the night... Sweet dreams!"
-    night-skipped:
-      title: "&#e0af68☀ &f&lGood Morning!"
-      subtitle: "&#9ece6aThe night has been skipped."
-    skip-cancelled:
-      title: "&#f7768e✕ &f&lSkip Cancelled"
-      subtitle: "&7Not enough players sleeping ([sleeping]/[needed])"
+    skip-cancelled: "&cNight skip cancelled because someone got out of bed."
   actionbar:
-    enabled: false
-    players-sleeping: "&e[sleeping] out of [needed] players are sleeping ([more] more needed to skip)"
-    night-skipping: "&eEveryone is sleeping- sweet dreams!"
+    enabled: true
+    player-sleeping: "&#7aa2f7☽ &f[player] &7is now sleeping &8(&f[sleeping]&7/&f[needed]&8)"
+    player-left-bed: "&#f7768e☽ &f[player] &7got out of bed &8(&f[sleeping]&7/&f[needed]&8)"
+    players-sleeping: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] &7sleeping &8• &7[more] more needed"
+    night-skipping: "&#bb9af7✦ &fSkipping the night... &7([progress]%)"
   bossbar:
     enabled: true
     players-sleeping:
-      message: "&f&l[sleeping] out of [needed] are sleeping &7&l([more] more needed)"
+      message: "&#7aa2f7☽ &f[sleeping]&7/&f[needed] sleeping &8• &7[more] more needed"
       color: BLUE
     night-skipping:
-      message: "&f&lEveryone is sleeping. Sweet dreams!"
-      color: GREEN
+      message: "&#bb9af7✦ &fSkipping the night... &7[progress]%"
+      color: PURPLE
+    night-skipped:
+      message: "&#e0af68☀ &fGood morning!"
+      color: YELLOW
+    skip-cancelled:
+      message: "&#f7768e✕ &fNight skip cancelled"
+      color: RED
   miscellaneous:
     chat-prefix: "&8&l(&6&lHarbor&8&l)&f "
     unrecognized-command: "Unrecognized command."
