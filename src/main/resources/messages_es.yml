@@ -1,18 +1,6 @@
 # Harbor - Archivo de idioma en Castellano (es)
 
 messages:
-  chat:
-    player-sleeping: "&e[player] está durmiendo ([sleeping]/[needed], faltan [more] para saltar la noche)."
-    player-left-bed: "&e[player] se ha levantado de la cama ([sleeping]/[needed], faltan [more] para saltar la noche)."
-    night-skipping:
-      - "&eAcelerando la noche."
-      - "&eAcercándose rápidamente al amanecer."
-    night-skipped:
-      - "&eSe ha saltado la noche."
-      - "&eAhhh, por fin es de día."
-      - "&e¡Qué brillante está el sol afuera!"
-      - "&eArriba, ya ha amanecido."
-    skip-cancelled: "&cSalto de la noche cancelado porque alguien se levantó de la cama."
   actionbar:
     player-sleeping: "&#7aa2f7☽ &f[player] &7se ha acostado &8(&f[sleeping]&7/&f[needed]&8)"
     player-left-bed: "&#f7768e☽ &f[player] &7se ha levantado &8(&f[sleeping]&7/&f[needed]&8)"

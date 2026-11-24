@@ -414,8 +414,6 @@ public class Checker extends BukkitRunnable {
         Config config = harbor.getConfiguration();
         Messages messages = harbor.getMessages();
 
-        messages.sendWorldChatMessage(world, config.getString("messages.chat.skip-cancelled"));
-
         // If some players are still sleeping, update the BossBar to their count; otherwise show brief red cancelled bar
         if (!getSleepingPlayers(world).isEmpty()) {
             checkWorldNow(world);
@@ -431,7 +429,7 @@ public class Checker extends BukkitRunnable {
     }
 
     /**
-     * Completes a night skip, wakes up players cleanly, shows brief morning BossBar, and sends random chat phrase.
+     * Completes a night skip, wakes up players cleanly, and shows a brief morning BossBar.
      *
      * @param world The world for which to complete the skip.
      */
@@ -455,8 +453,6 @@ public class Checker extends BukkitRunnable {
             skippingWorlds.remove(uid);
             forcedWorlds.remove(uid);
             wakingWorlds.remove(uid);
-            harbor.getPlayerManager().clearCooldowns();
-            messages.sendRandomChatMessage(world, "messages.chat.night-skipped");
         }, 20L);
     }
 

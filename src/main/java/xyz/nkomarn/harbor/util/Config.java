@@ -47,6 +47,14 @@ public class Config {
                     updated = true;
                 }
             }
+            if (current.isSet("messages.chat")) {
+                current.set("messages.chat", null);
+                updated = true;
+            }
+            if (current.isSet("messages.title")) {
+                current.set("messages.title", null);
+                updated = true;
+            }
             if (updated) {
                 current.save(configFile);
             }
@@ -75,6 +83,14 @@ public class Config {
                         currentLang.set(key, defLang.get(key));
                         updated = true;
                     }
+                }
+                if (currentLang.isSet("messages.chat")) {
+                    currentLang.set("messages.chat", null);
+                    updated = true;
+                }
+                if (currentLang.isSet("messages.title")) {
+                    currentLang.set("messages.title", null);
+                    updated = true;
                 }
                 // Upgrade old static night-skipping BossBar/ActionBar messages to include minimalist [progress]%
                 String oldBossSkip = currentLang.getString("messages.bossbar.night-skipping.message", "");

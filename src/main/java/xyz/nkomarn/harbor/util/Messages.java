@@ -15,19 +15,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.bukkit.scheduler.BukkitTask;
 import xyz.nkomarn.harbor.Harbor;
 import xyz.nkomarn.harbor.task.Checker;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Messages implements Listener {
 
@@ -50,23 +48,6 @@ public class Messages implements Listener {
             }
 
             registerBar(world);
-        }
-    }
-
-    /**
-     * Sends a message to all players in a given world.
-     *
-     * @param world   The world context.
-     * @param message The message to send.
-     */
-    public void sendWorldChatMessage(@NotNull World world, @NotNull String message) {
-        if (!config.getBoolean("messages.chat.enabled") || message.isEmpty()) {
-            return;
-        }
-
-        String preparedMessage = prepareMessage(world, message);
-        for (Player player : world.getPlayers()) {
-            player.sendMessage(preparedMessage);
         }
     }
 
@@ -94,23 +75,6 @@ public class Messages implements Listener {
         for (Player player : world.getPlayers()) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
         }
-    }
-
-    /**
-     * Selects a random message from a string list and sends it to the given world's chat.
-     *
-     * @param world        The world context.
-     * @param listLocation The location of the message list in the configuration.
-     */
-    public void sendRandomChatMessage(@NotNull World world, @NotNull String listLocation) {
-        List<String> messages = config.getStringList(listLocation);
-
-        if (messages.isEmpty()) {
-            return;
-        }
-
-        int index = ThreadLocalRandom.current().nextInt(messages.size());
-        sendWorldChatMessage(world, messages.get(index));
     }
 
     /**
@@ -170,7 +134,6 @@ public class Messages implements Listener {
 
         BukkitTask task = Bukkit.getScheduler().runTaskLater(harbor, () -> {
             transientBarTasks.remove(uid);
-            // Only clear if no players are actively sleeping again
             if (!harbor.getChecker().isSkipping(world) && harbor.getChecker().getSleepingPlayers(world).isEmpty()) {
                 Optional.ofNullable(bossBars.get(uid)).ifPresent(BossBar::removeAll);
             }
@@ -220,16 +183,6 @@ public class Messages implements Listener {
             output = PlaceholderAPI.setPlaceholders(player, output);
         }
         return output;
-    }
-
-    @NotNull
-    public String prepareMessage(@NotNull Player player, @NotNull String message) {
-        return Config.colorize(preparePlayerPlaceholders(player, message));
-    }
-
-    @NotNull
-    public String prepareMessage(@NotNull World world, @NotNull Player player, @NotNull String message) {
-        return prepareMessage(world, preparePlayerPlaceholders(player, message));
     }
 
     /**

@@ -26,7 +26,6 @@ public class AccelerateNightTask extends BukkitRunnable {
         int dayTime = Math.max(0, Math.min(23999, harbor.getConfiguration().getInteger("night-skip.daytime-ticks")));
         this.totalTicksToSkip = Math.max(1L, (dayTime - world.getTime() + 24000) % 24000);
 
-        harbor.getMessages().sendRandomChatMessage(world, "messages.chat.night-skipping");
         checker.clearWeather(world);
         runTaskTimer(harbor, 1L, 1L);
     }

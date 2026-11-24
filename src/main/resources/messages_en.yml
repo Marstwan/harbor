@@ -1,18 +1,6 @@
 # Harbor - English (en) language file
 
 messages:
-  chat:
-    player-sleeping: "&e[player] is now sleeping ([sleeping]/[needed], [more] more needed to skip)."
-    player-left-bed: "&e[player] got out of bed ([sleeping]/[needed], [more] more needed to skip)."
-    night-skipping:
-      - "&eAccelerating the night."
-      - "&eRapidly approaching daytime."
-    night-skipped:
-      - "&eThe night has been skipped."
-      - "&eAhhh, finally morning."
-      - "&eArghh, it's so bright outside."
-      - "&eRise and shine."
-    skip-cancelled: "&cNight skip cancelled because someone got out of bed."
   actionbar:
     player-sleeping: "&#7aa2f7☽ &f[player] &7is now sleeping &8(&f[sleeping]&7/&f[needed]&8)"
     player-left-bed: "&#f7768e☽ &f[player] &7got out of bed &8(&f[sleeping]&7/&f[needed]&8)"

@@ -1,18 +1,6 @@
 # Harbor - Fitxer d'idioma en Català (ca)
 
 messages:
-  chat:
-    player-sleeping: "&e[player] està dormint ([sleeping]/[needed], en falten [more] per passar la nit)."
-    player-left-bed: "&e[player] s'ha aixecat del llit ([sleeping]/[needed], en falten [more] per passar la nit)."
-    night-skipping:
-      - "&eAccelerant la nit."
-      - "&eAcostant-se ràpidament a la matinada."
-    night-skipped:
-      - "&eS'ha passat la nit."
-      - "&eAhhh, per fi és de dia."
-      - "&eQue brillant és el sol a fora!"
-      - "&eAmunt, ja s'ha fet de dia."
-    skip-cancelled: "&cSalt de la nit cancel·lat perquè algú s'ha aixecat del llit."
   actionbar:
     player-sleeping: "&#7aa2f7☽ &f[player] &7s'ha ficat al llit &8(&f[sleeping]&7/&f[needed]&8)"
     player-left-bed: "&#f7768e☽ &f[player] &7s'ha aixecat &8(&f[sleeping]&7/&f[needed]&8)"

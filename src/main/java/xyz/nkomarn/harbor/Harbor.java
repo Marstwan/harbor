@@ -39,7 +39,6 @@ public class Harbor extends JavaPlugin {
 
         List.of(
                 messages,
-                playerManager,
                 new BedListener(this)
         ).forEach(listener -> pluginManager.registerEvents(listener, this));
 
