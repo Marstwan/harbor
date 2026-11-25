@@ -4,7 +4,7 @@
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Marstwan/harbor/releases)
 [![Java](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://github.com/Marstwan/harbor)
 
-**Harbor** is a lightweight, modernized sleep mechanics enhancement plugin for Spigot and Paper servers, updated and maintained by **Marstwan** for **Minecraft 26.3**. It makes skipping the night smooth and customizable when a configurable percentage of online players are in bed.
+**Harbor** is a lightweight, modernized sleep mechanics enhancement plugin for Spigot and Paper servers, updated for **Minecraft 26.3**. It makes skipping the night smooth and customizable when a configurable percentage of online players are in bed.
 
 Download the latest version on the **[Releases page](https://github.com/Marstwan/harbor/releases)**.
 
